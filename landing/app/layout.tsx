@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
+import { preload } from "react-dom";
 import "./globals.css";
+
+// Self-hosted above-the-fold fonts, preloaded (deduped by React) to avoid hero FOUT.
+const PRELOAD_FONTS = [
+  "/fonts/space-mono-700.woff2",
+  "/fonts/space-mono-400.woff2",
+  "/fonts/newsreader-400.woff2",
+];
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://pingcrm.xyz"),
@@ -94,11 +102,18 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  for (const href of PRELOAD_FONTS) {
+    preload(href, { as: "font", type: "font/woff2", crossOrigin: "anonymous" });
+  }
   return (
     <html lang="en" className="dark">
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Reveal sections default to opacity:0 for the JS entrance; without JS the
+            IntersectionObserver never runs, so force them visible for no-JS renderers. */}
+        <noscript>
+          <style>{`.scroll-reveal{opacity:1 !important;transform:none !important}`}</style>
+        </noscript>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}

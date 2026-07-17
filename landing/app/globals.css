@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
+/* ── Self-hosted fonts (previously hotlinked to fonts.gstatic.com) ── */
 @font-face {
   font-family: "Space Mono";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("https://fonts.gstatic.com/s/spacemono/v13/i7dPIFZifjKcF5UAWdDRYEF8RQ.woff2")
-    format("woff2");
+  src: url("/fonts/space-mono-400.woff2") format("woff2");
 }
 
 @font-face {
@@ -14,17 +14,7 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url("https://fonts.gstatic.com/s/spacemono/v13/i7dMIFZifjKcF5UAWdDRaPpZYFKQHw.woff2")
-    format("woff2");
-}
-
-@font-face {
-  font-family: "Newsreader";
-  font-style: normal;
-  font-weight: 300;
-  font-display: swap;
-  src: url("https://fonts.gstatic.com/s/newsreader/v21/cY9qfjOCX1hbuyalUrK49dLac06G1ZGsZBtoBCzBDXXD9JVF438w-IrhAI-SgA.woff2")
-    format("woff2");
+  src: url("/fonts/space-mono-700.woff2") format("woff2");
 }
 
 @font-face {
@@ -32,8 +22,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("https://fonts.gstatic.com/s/newsreader/v21/cY9qfjOCX1hbuyalUrK49dLac06G1ZGsZBtoBCzBDXXD9JVF438wJorhAI-SgA.woff2")
-    format("woff2");
+  src: url("/fonts/newsreader-400.woff2") format("woff2");
 }
 
 @font-face {
@@ -41,24 +30,32 @@
   font-style: italic;
   font-weight: 400;
   font-display: swap;
-  src: url("https://fonts.gstatic.com/s/newsreader/v21/cY9kfjOCX1hbuyalUrK439vogqC9yFZCYg7oRZaLP4obnf7fTXglsMyoT-ZAHDWwSE.woff2")
-    format("woff2");
+  src: url("/fonts/newsreader-italic-400.woff2") format("woff2");
 }
 
 :root {
   --bg: #07090b;
   --bg-elevated: #0d1117;
   --bg-surface: #131921;
+  /* Nav backdrop derived from --bg so it tracks the base color */
+  --nav-bg: color-mix(in srgb, var(--bg) 82%, transparent);
   --border: #1e2a3a;
   --border-bright: #2a3a4e;
   --text: #d1d9e6;
-  --text-muted: #6b7a8d;
+  /* Raised from #6b7a8d to clear WCAG AA (>=4.5:1) on card surfaces */
+  --text-muted: #8a97a8;
+  /* Decorative mock text only — below AA on purpose. Never use for real copy or links. */
   --text-dim: #3d4f63;
   --accent: #34d399;
   --accent-dim: #10b981;
   --accent-glow: rgba(52, 211, 153, 0.15);
   --accent-glow-strong: rgba(52, 211, 153, 0.3);
   --warm: #f59e0b;
+  --warm-glow: rgba(245, 158, 11, 0.15);
+
+  /* Semantic z-index scale */
+  --z-nav: 50;
+  --z-grain: 100;
 }
 
 html {
@@ -71,12 +68,18 @@ body {
   font-family: "Newsreader", Georgia, serif;
 }
 
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
 /* Noise texture overlay */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: var(--z-grain);
   pointer-events: none;
   opacity: 0.03;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -129,11 +132,6 @@ body::before {
   }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 @keyframes pulseGlow {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
@@ -141,10 +139,6 @@ body::before {
 
 .animate-fade-up {
   animation: fadeUp 0.8s ease-out both;
-}
-
-.animate-fade-in {
-  animation: fadeIn 1s ease-out both;
 }
 
 .animate-pulse-glow {
@@ -156,8 +150,6 @@ body::before {
 .delay-3 { animation-delay: 0.3s; }
 .delay-4 { animation-delay: 0.4s; }
 .delay-5 { animation-delay: 0.5s; }
-.delay-6 { animation-delay: 0.6s; }
-.delay-7 { animation-delay: 0.7s; }
 
 /* Feature card hover */
 .feature-card {
@@ -172,27 +164,6 @@ body::before {
   transform: translateY(-2px);
 }
 
-/* Step connector line */
-.step-connector {
-  position: relative;
-}
-
-.step-connector::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: -2rem;
-  width: 4rem;
-  height: 1px;
-  background: linear-gradient(90deg, var(--border-bright), transparent);
-}
-
-@media (max-width: 768px) {
-  .step-connector::after {
-    display: none;
-  }
-}
-
 /* Input focus ring */
 input:focus {
   outline: none;
@@ -200,18 +171,14 @@ input:focus {
   box-shadow: 0 0 0 3px var(--accent-glow), 0 0 16px var(--accent-glow);
 }
 
-/* Button shimmer */
-@keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+input::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
 }
 
-.btn-shimmer {
-  background-size: 200% 100%;
-  animation: shimmer 3s linear infinite;
-}
-
-/* Scroll-triggered reveal */
+/* Scroll-triggered reveal.
+   Default is opacity:0 so JS visitors get the entrance; the <noscript> override
+   in the document head forces visibility so no-JS renderers never ship blank. */
 .scroll-reveal {
   opacity: 0;
   transform: translateY(24px);
@@ -223,9 +190,16 @@ input:focus {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   .scroll-reveal {
     opacity: 1;
     transform: none;
     transition: none;
+  }
+  .animate-fade-up,
+  .animate-pulse-glow {
+    animation: none;
   }
 }

@@ -2,204 +2,20 @@ import WaitlistForm from "./waitlist-form";
 import DashboardPreview from "./dashboard-preview";
 import { Nav, Footer } from "./nav";
 import ScrollRevealInit from "./scroll-reveal-init";
+import FeaturesSection from "./features-section";
+import FaqSection from "./faq-section";
+import { GitHubIcon, StarIcon } from "./icons";
+import { STEPS } from "./landing-content";
+import { GITHUB_URL, DOCS_HOME } from "./constants";
+import { getStarCount, formatStars } from "./github";
 
-const GITHUB_URL = "https://github.com/sneg55/pingcrm";
+export default async function LandingPage() {
+  const stars = await getStarCount();
 
-const FEATURES = [
-  {
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2L2 7l10 5 10-5-10-5z" />
-        <path d="M2 17l10 5 10-5" />
-        <path d="M2 12l10 5 10-5" />
-      </svg>
-    ),
-    title: "Multi-Platform Sync",
-    description:
-      "Connect Gmail, Telegram, Twitter/X, and LinkedIn. Every conversation, every DM, every thread — unified into one timeline per contact.",
-  },
-  {
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-        <path d="M8 10h.01M12 10h.01M16 10h.01" />
-      </svg>
-    ),
-    title: "AI Follow-Up Drafts",
-    description:
-      "Claude writes contextual messages based on your history. One click to edit, one click to send. No more staring at blank compose windows.",
-  },
-  {
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-      </svg>
-    ),
-    title: "Relationship Scoring",
-    description:
-      "A transparent 0\u201310 score decomposed into reciprocity, recency, frequency, and breadth. See exactly why a relationship is cooling off.",
-  },
-  {
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-      </svg>
-    ),
-    title: "Unified Timeline",
-    description:
-      "Every touchpoint with a contact — emails, DMs, group chats, mentions — in chronological order. Full context at a glance.",
-  },
-  {
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M22 21v-2a4 4 0 00-3-3.87" />
-        <path d="M16 3.13a4 4 0 010 7.75" />
-      </svg>
-    ),
-    title: "Identity Resolution",
-    description:
-      "Automatically merges alex@startup.com, @alexbuilds on Twitter, Alex R. on LinkedIn, and @alexr on Telegram into one unified profile.",
-  },
-  {
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="8" y1="2" x2="8" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-        <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
-      </svg>
-    ),
-    title: "Weekly Digest",
-    description:
-      "Every week: 3\u20135 people worth reaching out to, and why. Bio changes, job moves, long silences — nothing slips through. Need more? Ask Ping to surface additional contacts anytime.",
-  },
-];
-
-const STEPS = [
-  {
-    number: "01",
-    label: "Connect",
-    description: "Link your Gmail, Telegram, Twitter, and LinkedIn accounts. Import contacts via CSV or Google Contacts.",
-    visual: (
-      <div className="flex gap-3 items-center justify-center">
-        {["Gmail", "Telegram", "Twitter", "LinkedIn"].map((p) => (
-          <span
-            key={p}
-            className="px-3 py-1.5 rounded text-xs tracking-wider"
-            style={{
-              fontFamily: "'Space Mono', monospace",
-              background: "var(--accent-glow)",
-              border: "1px solid var(--accent-dim)",
-              color: "var(--accent)",
-            }}
-          >
-            {p}
-          </span>
-        ))}
-      </div>
-    ),
-  },
-  {
-    number: "02",
-    label: "Monitor",
-    description: "Ping organizes your conversations, surfaces patterns, and flags when relationships need attention.",
-    visual: (
-      <div className="flex items-end gap-1 justify-center h-10">
-        {[3, 7, 5, 2, 6, 8, 4].map((h, i) => (
-          <div
-            key={i}
-            className="w-3 rounded-sm"
-            style={{
-              height: `${h * 4}px`,
-              background: "linear-gradient(to top, var(--accent-dim), var(--accent))",
-              opacity: 0.4 + (h / 8) * 0.6,
-            }}
-          />
-        ))}
-      </div>
-    ),
-  },
-  {
-    number: "03",
-    label: "Act",
-    description: "Get a weekly digest with AI-drafted messages. Review, tweak, and send — staying in touch without the mental overhead.",
-    visual: (
-      <div
-        className="px-4 py-2 rounded text-xs text-center"
-        style={{
-          fontFamily: "'Space Mono', monospace",
-          background: "var(--bg-surface)",
-          border: "1px solid var(--border-bright)",
-          color: "var(--text-muted)",
-        }}
-      >
-        <span style={{ color: "var(--accent)" }}>AI:</span>{" "}
-        &quot;Hey Alex, saw you just raised...&quot;
-      </div>
-    ),
-  },
-];
-
-// Answer-first FAQ — each answer leads with a direct, extractable sentence so
-// search + AI answer engines can quote it. Maps to priority target queries.
-// The same array feeds the FAQPage JSON-LD below (keep them in sync).
-const DOCS_URL = "https://docs.pingcrm.xyz";
-
-const FAQS = [
-  {
-    q: "What is PingCRM?",
-    a: "PingCRM is an open-source personal networking CRM. It syncs your conversations across Gmail, Telegram, Twitter/X, and LinkedIn into one timeline per contact, scores each relationship, and uses Claude AI to draft follow-up messages so you stay in touch without the mental overhead.",
-    doc: { href: `${DOCS_URL}/architecture/`, label: "How PingCRM works" },
-  },
-  {
-    q: "Is PingCRM open source and self-hostable?",
-    a: "Yes. PingCRM is fully open source under the AGPL-3.0 license and self-hostable on your own server. You can deploy it in under 10 minutes with Docker Compose, audit every line of code, and own your relationship data completely — no vendor lock-in and no data harvesting.",
-    doc: { href: `${DOCS_URL}/setup/`, label: "Self-hosting setup guide" },
-  },
-  {
-    q: "Which platforms does PingCRM sync?",
-    a: "PingCRM syncs Gmail, Telegram, Twitter/X, and LinkedIn. Every email, DM, group chat, and mention is unified into a single chronological timeline for each contact.",
-    doc: { href: `${DOCS_URL}/features/gmail/`, label: "Integration docs" },
-  },
-  {
-    q: "How does PingCRM use AI?",
-    a: "PingCRM uses Claude AI to draft contextual follow-up messages based on your conversation history. It only drafts — nothing is ever sent automatically. You review, edit, and send each message yourself.",
-    doc: { href: `${DOCS_URL}/features/suggestions/`, label: "AI suggestions & composer" },
-  },
-  {
-    q: "What is relationship scoring?",
-    a: "Relationship scoring is a transparent 0–10 score for each contact, decomposed into reciprocity, recency, frequency, and breadth. It shows exactly why a relationship is cooling off so you know who needs attention.",
-    doc: { href: `${DOCS_URL}/features/suggestions/`, label: "Scoring & suggestions" },
-  },
-  {
-    q: "Is my data private with PingCRM?",
-    a: "Yes. Because PingCRM is self-hosted, your data lives on your own infrastructure. Nothing is sent to a third-party CRM cloud, and the AGPL-3.0 license keeps the whole stack auditable.",
-    doc: { href: `${DOCS_URL}/architecture/`, label: "Architecture & data flow" },
-  },
-  {
-    q: "Is there a hosted version of PingCRM?",
-    a: "A managed, hosted version of PingCRM is in the works. If you'd prefer not to self-host, you can join the waitlist from the homepage.",
-    doc: null,
-  },
-];
-
-function GitHubIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-    </svg>
-  );
-}
-
-export default function LandingPage() {
   return (
     <div className="relative overflow-hidden">
       <ScrollRevealInit />
-      <Nav />
+      <Nav stars={stars} />
 
       {/* ──── Hero ──── */}
       <section className="relative pt-32 pb-24 px-6">
@@ -223,14 +39,7 @@ export default function LandingPage() {
             style={{ fontFamily: "'Space Mono', monospace" }}
           >
             Your network is{" "}
-            <span
-              className="relative inline-block"
-              style={{
-                background: "linear-gradient(135deg, var(--accent), #6ee7b7)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
+            <span className="relative inline-block" style={{ color: "var(--accent)" }}>
               decaying
             </span>
             <br />
@@ -265,7 +74,7 @@ export default function LandingPage() {
               Self-Host Now
             </a>
             <a
-              href="https://docs.pingcrm.xyz/"
+              href={DOCS_HOME}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm tracking-wide transition-all duration-200 hover:border-[var(--border-bright)] hover:-translate-y-0.5"
@@ -277,7 +86,7 @@ export default function LandingPage() {
                 fontSize: "14px",
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
                 <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
               </svg>
@@ -294,54 +103,12 @@ export default function LandingPage() {
 
       <div className="glow-line mx-auto max-w-4xl" />
 
-      {/* ──── Features ──── */}
-      <section className="scroll-reveal py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <p
-              className="text-xs tracking-[0.2em] uppercase mb-3"
-              style={{ fontFamily: "'Space Mono', monospace", color: "var(--accent)" }}
-            >
-              What Ping Does
-            </p>
-            <h2
-              className="text-3xl sm:text-4xl font-bold tracking-tight"
-              style={{ fontFamily: "'Space Mono', monospace" }}
-            >
-              Six ways Ping keeps your{" "}
-              <span style={{ color: "var(--accent)" }}>network alive</span>
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {FEATURES.map((feature) => (
-              <div key={feature.title} className="feature-card rounded-xl p-6">
-                <div className="mb-4 opacity-80">{feature.icon}</div>
-                <h3
-                  className="text-base font-bold mb-2 tracking-tight"
-                  style={{ fontFamily: "'Space Mono', monospace" }}
-                >
-                  {feature.title}
-                </h3>
-                <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <FeaturesSection />
 
       {/* ──── How It Works ──── */}
       <section className="scroll-reveal py-24 px-6" style={{ background: "var(--bg-elevated)" }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <p
-              className="text-xs tracking-[0.2em] uppercase mb-3"
-              style={{ fontFamily: "'Space Mono', monospace", color: "var(--accent)" }}
-            >
-              How It Works
-            </p>
             <h2
               className="text-3xl sm:text-4xl font-bold tracking-tight"
               style={{ fontFamily: "'Space Mono', monospace" }}
@@ -450,9 +217,18 @@ export default function LandingPage() {
             >
               <GitHubIcon size={18} />
               Star on GitHub
+              {stars != null && (
+                <span
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded"
+                  style={{ background: "var(--accent-glow)", color: "var(--accent)", fontSize: "12px" }}
+                >
+                  <StarIcon size={11} />
+                  {formatStars(stars)}
+                </span>
+              )}
             </a>
             <a
-              href="https://docs.pingcrm.xyz/"
+              href={DOCS_HOME}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2.5 px-6 py-3 rounded-lg text-sm tracking-wide transition-all duration-200 hover:border-[var(--text-muted)] hover:-translate-y-0.5"
@@ -463,7 +239,7 @@ export default function LandingPage() {
                 fontSize: "14px",
               }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
                 <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
               </svg>
@@ -473,66 +249,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ──── FAQ ──── */}
-      <section className="scroll-reveal py-24 px-6" style={{ background: "var(--bg-elevated)" }}>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: FAQS.map((f) => ({
-                "@type": "Question",
-                name: f.q,
-                acceptedAnswer: { "@type": "Answer", text: f.a },
-              })),
-            }),
-          }}
-        />
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-16">
-            <p
-              className="text-xs tracking-[0.2em] uppercase mb-3"
-              style={{ fontFamily: "'Space Mono', monospace", color: "var(--accent)" }}
-            >
-              FAQ
-            </p>
-            <h2
-              className="text-3xl sm:text-4xl font-bold tracking-tight"
-              style={{ fontFamily: "'Space Mono', monospace" }}
-            >
-              Common{" "}
-              <span style={{ color: "var(--accent)" }}>questions</span>
-            </h2>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            {FAQS.map((faq) => (
-              <div key={faq.q} className="feature-card rounded-xl p-6">
-                <h3
-                  className="text-base font-bold mb-2 tracking-tight"
-                  style={{ fontFamily: "'Space Mono', monospace" }}
-                >
-                  {faq.q}
-                </h3>
-                <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                  {faq.a}
-                </p>
-                {faq.doc && (
-                  <a
-                    href={faq.doc.href}
-                    className="inline-flex items-center gap-1 mt-3 text-xs tracking-wide transition-colors hover:opacity-80"
-                    style={{ fontFamily: "'Space Mono', monospace", color: "var(--accent)" }}
-                  >
-                    {faq.doc.label}
-                    <span aria-hidden="true">→</span>
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <FaqSection />
 
       {/* ──── Hosted Waitlist Banner ──── */}
       <div className="py-6 px-6" style={{ borderTop: "1px solid var(--border)" }}>

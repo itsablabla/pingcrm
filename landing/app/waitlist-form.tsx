@@ -44,9 +44,9 @@ export default function WaitlistForm({ compact = false }: { compact?: boolean })
 
   if (status === "success") {
     return (
-      <div className={`flex items-center gap-2 ${compact ? "px-3 py-2" : "px-6 py-4"} rounded-lg border`}
+      <div role="status" className={`flex items-center gap-2 ${compact ? "px-3 py-2" : "px-6 py-4"} rounded-lg border`}
         style={{ borderColor: "var(--accent-dim)", background: "var(--accent-glow)" }}>
-        <svg width={compact ? 14 : 20} height={compact ? 14 : 20} viewBox="0 0 20 20" fill="none" className="shrink-0">
+        <svg width={compact ? 14 : 20} height={compact ? 14 : 20} viewBox="0 0 20 20" fill="none" className="shrink-0" aria-hidden="true">
           <path d="M7 10l2 2 4-4" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           <circle cx="10" cy="10" r="8" stroke="var(--accent)" strokeWidth="1.5" />
         </svg>
@@ -65,6 +65,9 @@ export default function WaitlistForm({ compact = false }: { compact?: boolean })
         onChange={(e) => setEmail(e.target.value)}
         placeholder="you@company.com"
         required
+        aria-label="Email address"
+        aria-invalid={status === "error"}
+        aria-describedby={status === "error" ? "waitlist-error" : undefined}
         className={`flex-1 ${compact ? "px-3 py-1.5" : "px-4 py-3"} rounded-lg text-sm`}
         style={{
           fontFamily: "'Space Mono', monospace",
@@ -101,7 +104,7 @@ export default function WaitlistForm({ compact = false }: { compact?: boolean })
         {status === "loading" ? "Joining..." : "Join Waitlist"}
       </button>
       {status === "error" && (
-        <p className="text-sm mt-1" style={{ color: "#ef4444", fontFamily: "'Space Mono', monospace", fontSize: "12px" }}>
+        <p id="waitlist-error" role="alert" className="text-sm mt-1" style={{ color: "#ef4444", fontFamily: "'Space Mono', monospace", fontSize: "12px" }}>
           {message}
         </p>
       )}
