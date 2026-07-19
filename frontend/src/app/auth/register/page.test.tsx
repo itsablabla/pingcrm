@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import RegisterPage from "./page";
 
 // Mock useAuth
@@ -26,6 +26,11 @@ describe("RegisterPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRegister.mockResolvedValue(undefined);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("renders form with name, email, and password fields", () => {
@@ -49,6 +54,13 @@ describe("RegisterPage", () => {
   it("shows app name", () => {
     render(<RegisterPage />);
     expect(screen.getByText("Ping")).toBeInTheDocument();
+  });
+
+  it("communicates and enforces the password minimum", () => {
+    render(<RegisterPage />);
+
+    expect(screen.getByLabelText("Password")).toHaveAttribute("minlength", "8");
+    expect(screen.getByText("Use at least 8 characters.")).toBeInTheDocument();
   });
 
   it("calls register with correct args and redirects on success", async () => {
@@ -95,6 +107,10 @@ describe("RegisterPage", () => {
         screen.getByText("Email already registered")
       ).toBeInTheDocument();
     });
+    expect(console.error).toHaveBeenCalledWith(
+      "Registration failed",
+      expect.any(Error)
+    );
     expect(mockPush).not.toHaveBeenCalled();
   });
 

@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { client } from "@/lib/api-client";
+import { extractErrorMessage } from "@/lib/api-errors";
 
 export type User = {
   id: string;
@@ -45,7 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("access_token");
         setUser(null);
       }
-    } catch {
+    } catch (error) {
+      console.error("Failed to fetch authenticated user", error);
       localStorage.removeItem("access_token");
       setUser(null);
     } finally {
@@ -82,9 +84,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(
     async (email: string, password: string, full_name: string) => {
-      await client.POST("/api/v1/auth/register", {
+      const { error } = await client.POST("/api/v1/auth/register", {
         body: { email, password, full_name },
       });
+      if (error) {
+        throw new Error(extractErrorMessage(error) ?? "Registration failed");
+      }
       await login(email, password);
     },
     [login]

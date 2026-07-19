@@ -22,6 +22,7 @@ export default function RegisterPage() {
       await register(email, password, fullName);
       router.push("/dashboard");
     } catch (err: unknown) {
+      console.error("Registration failed", err);
       const message =
         err instanceof Error
           ? err.message
@@ -91,12 +92,17 @@ export default function RegisterPage() {
                 id="password"
                 type="password"
                 required
+                minLength={8}
                 autoComplete="new-password"
+                aria-describedby="password-help"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                 placeholder="••••••••"
               />
+              <p id="password-help" className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Use at least 8 characters.
+              </p>
             </div>
 
             {error && (
