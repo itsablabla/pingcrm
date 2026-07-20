@@ -5,8 +5,13 @@ services:
     # from a local venv, per CONTRIBUTING.md) can reach the database at
     # localhost:5432. Containers on the compose network still use the "postgres"
     # service hostname.
+    #
+    # Bound to 127.0.0.1 explicitly: "5432:5432" listens on every interface, which
+    # publishes the database to the internet on any host with a public IP. Docker
+    # writes its own iptables DNAT rules that are evaluated before ufw's, so a host
+    # firewall does not cover this.
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     command:
       - postgres
       - -c
@@ -34,8 +39,10 @@ services:
   redis:
     image: redis:7-alpine
     # Published to the host for host-based development (see postgres above).
+    # Loopback-bound for the same reason, and it matters more here: this dev Redis
+    # has no requirepass, so an all-interfaces bind is an open Redis on the internet.
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
