@@ -63,6 +63,20 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 "ENCRYPTION_KEY is not set. Encrypted fields will not work. "
                 "Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
             )
+    if not settings.WHATSAPP_WEBHOOK_SECRET:
+        env = getattr(settings, "ENVIRONMENT", "production")
+        if env == "production":
+            raise RuntimeError(
+                "WHATSAPP_WEBHOOK_SECRET is not set. The WhatsApp webhook writes "
+                "into the account named by the request body, so it refuses all "
+                "traffic without a signing secret. Generate one with: "
+                "python -c \"import secrets; print(secrets.token_hex(32))\""
+            )
+        else:
+            logger.warning(
+                "WHATSAPP_WEBHOOK_SECRET is not set. The WhatsApp webhook will "
+                "reject all requests with 503."
+            )
     logger.info("PingCRM API starting up...")
     yield
     logger.info("PingCRM API shutting down.")
@@ -219,7 +233,11 @@ _ERROR_RATE_LIMIT = 10  # max reports per minute per IP
 async def report_frontend_error(report: FrontendErrorReport, request: Request) -> dict:
     """Receive client-side errors and log them in the structured backend log."""
     import time
-    client_ip = request.client.host if request.client else "unknown"
+    from app.core.rate_limit import client_ip as resolve_client_ip
+
+    # Use the shared spoof-resistant resolver rather than request.client.host so
+    # this bucket keys on the same value as the auth throttles.
+    client_ip = resolve_client_ip(request)
     now = time.monotonic()
 
     # Simple rate limiting: 10 reports per minute per IP

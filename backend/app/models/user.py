@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, String, func
+from sqlalchemy import Boolean, DateTime, Integer, String, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import Mapped, mapped_column
@@ -67,6 +67,12 @@ class User(Base):
     meta_sync_facebook: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, server_default="true")
     meta_sync_instagram: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, server_default="true")
     mcp_api_key_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    # Bumped on password change so previously-issued JWTs stop validating.
+    # Tokens carry the version they were minted with; a mismatch is rejected.
+    # This is the only way to evict a stolen token before it expires.
+    token_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
     updated_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), onupdate=func.now(), nullable=True
     )

@@ -117,7 +117,7 @@ async def login(
     expire_minutes = REMEMBER_ME_EXPIRE_MINUTES if remember_me else settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
     access_token = create_access_token(
-        data={"sub": str(user.id)},
+        data={"sub": str(user.id), "tv": user.token_version},
         expires_delta=timedelta(minutes=expire_minutes),
     )
     return Envelope(data=TokenData(access_token=access_token, token_type="bearer"))
@@ -346,7 +346,7 @@ async def google_callback(
     await db.refresh(user)
 
     access_token = create_access_token(
-        data={"sub": str(user.id)},
+        data={"sub": str(user.id), "tv": user.token_version},
         expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
     )
     return {"data": {"access_token": access_token, "token_type": "bearer"}, "error": None}
@@ -394,8 +394,21 @@ async def change_password(
     if len(body.new_password) < 8:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New password must be at least 8 characters")
     current_user.hashed_password = hash_password(body.new_password)
+    # Invalidate every token minted before this change. Without it a stolen
+    # token stays valid for up to REMEMBER_ME_EXPIRE_MINUTES (30 days) and the
+    # user has no way to evict an attacker by changing their password.
+    current_user.token_version = (current_user.token_version or 0) + 1
     await db.flush()
-    return {"data": {"updated": True}, "error": None}
+
+    # Issue a replacement so the caller is not logged out by their own change.
+    access_token = create_access_token(
+        data={"sub": str(current_user.id), "tv": current_user.token_version},
+        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+    return {
+        "data": {"updated": True, "access_token": access_token, "token_type": "bearer"},
+        "error": None,
+    }
 
 
 @router.delete("/me", response_model=Envelope[dict])

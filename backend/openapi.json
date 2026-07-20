@@ -3489,6 +3489,7 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "additionalProperties": true,
                   "type": "object",
                   "title": "Response Get Sync Progress Api V1 Telegram Sync Progress Get"
                 }
@@ -5771,6 +5772,7 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "additionalProperties": true,
                   "type": "object",
                   "title": "Response Report Frontend Error Api V1 Errors Post"
                 }
@@ -5803,6 +5805,7 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "additionalProperties": true,
                   "type": "object",
                   "title": "Response Health Check Api Health Get"
                 }
@@ -6005,7 +6008,7 @@
         "properties": {
           "file": {
             "type": "string",
-            "format": "binary",
+            "contentMediaType": "application/octet-stream",
             "title": "File"
           }
         },
@@ -6019,7 +6022,7 @@
         "properties": {
           "file": {
             "type": "string",
-            "format": "binary",
+            "contentMediaType": "application/octet-stream",
             "title": "File"
           }
         },
@@ -6033,7 +6036,7 @@
         "properties": {
           "file": {
             "type": "string",
-            "format": "binary",
+            "contentMediaType": "application/octet-stream",
             "title": "File"
           }
         },
@@ -6049,7 +6052,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "password"
+                "pattern": "^password$"
               },
               {
                 "type": "null"
@@ -6063,6 +6066,7 @@
           },
           "password": {
             "type": "string",
+            "format": "password",
             "title": "Password"
           },
           "scope": {
@@ -6090,6 +6094,7 @@
                 "type": "null"
               }
             ],
+            "format": "password",
             "title": "Client Secret"
           }
         },
@@ -7589,6 +7594,7 @@
         "properties": {
           "created": {
             "items": {
+              "additionalProperties": true,
               "type": "object"
             },
             "type": "array",
@@ -7797,6 +7803,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -7835,6 +7842,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -7873,6 +7881,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -7911,6 +7920,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -7949,6 +7959,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -7987,6 +7998,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8025,6 +8037,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8063,6 +8076,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8101,6 +8115,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8139,6 +8154,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8177,6 +8193,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8215,6 +8232,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8253,6 +8271,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8291,6 +8310,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8329,6 +8349,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8367,6 +8388,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8405,6 +8427,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8443,6 +8466,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8481,6 +8505,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8519,6 +8544,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8557,6 +8583,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8595,6 +8622,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8633,6 +8661,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8671,6 +8700,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8709,6 +8739,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8747,6 +8778,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8785,6 +8817,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8823,6 +8856,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8861,6 +8895,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8899,6 +8934,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8937,6 +8973,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -8975,6 +9012,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9013,6 +9051,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9051,6 +9090,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9089,6 +9129,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9127,6 +9168,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9165,6 +9207,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9203,6 +9246,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9241,6 +9285,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9279,6 +9324,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9317,6 +9363,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9355,6 +9402,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9393,6 +9441,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9431,6 +9480,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9469,6 +9519,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9507,6 +9558,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9545,6 +9597,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9583,6 +9636,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9621,6 +9675,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9659,6 +9714,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9697,6 +9753,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9735,6 +9792,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9773,6 +9831,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9811,6 +9870,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9849,6 +9909,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9866,6 +9927,7 @@
           "data": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9888,6 +9950,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9928,6 +9991,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -9970,6 +10034,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -10012,6 +10077,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -10054,6 +10120,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -10096,6 +10163,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -10138,6 +10206,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -10180,6 +10249,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -10222,6 +10292,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -10264,6 +10335,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -10282,6 +10354,7 @@
             "anyOf": [
               {
                 "items": {
+                  "additionalProperties": true,
                   "type": "object"
                 },
                 "type": "array"
@@ -10306,6 +10379,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -10348,6 +10422,7 @@
           "meta": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -12746,18 +12821,22 @@
       "SyncSettingsData": {
         "properties": {
           "telegram": {
+            "additionalProperties": true,
             "type": "object",
             "title": "Telegram"
           },
           "gmail": {
+            "additionalProperties": true,
             "type": "object",
             "title": "Gmail"
           },
           "twitter": {
+            "additionalProperties": true,
             "type": "object",
             "title": "Twitter"
           },
           "linkedin": {
+            "additionalProperties": true,
             "type": "object",
             "title": "Linkedin"
           }
@@ -12776,6 +12855,7 @@
           "telegram": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -12787,6 +12867,7 @@
           "gmail": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -12798,6 +12879,7 @@
           "twitter": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -12809,6 +12891,7 @@
           "linkedin": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -13319,6 +13402,7 @@
           "priority_settings": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -13505,6 +13589,13 @@
           "type": {
             "type": "string",
             "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
           }
         },
         "type": "object",

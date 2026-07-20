@@ -35,6 +35,19 @@ class Settings(BaseSettings):
     REGISTER_RATE_LIMIT_ATTEMPTS: int = 5
     REGISTER_RATE_LIMIT_WINDOW_SECONDS: int = 3600  # 1 hour
 
+    # Number of reverse proxies between the internet and this app. Production is
+    # a single Caddy container, so 1. Client IPs are read this many hops from the
+    # *right* of X-Forwarded-For; anything further left is caller-supplied and
+    # must never be trusted for throttling. Raise this only if you add proxies
+    # (e.g. Cloudflare in front of Caddy would make it 2).
+    TRUSTED_PROXY_HOPS: int = 1
+
+    # Per-user throttle on endpoints that call the Anthropic API, so a stolen
+    # token cannot run up an unbounded bill.
+    LLM_RATE_LIMIT_ENABLED: bool = True
+    LLM_RATE_LIMIT_ATTEMPTS: int = 30
+    LLM_RATE_LIMIT_WINDOW_SECONDS: int = 3600  # 1 hour
+
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_REDIRECT_URI: str = "http://localhost:3000/auth/google/callback"

@@ -81,12 +81,21 @@ export function AccountTab() {
     }
     setSavingPw(true);
     try {
-      const { error } = await client.POST("/api/v1/auth/change-password", {
+      const { data, error } = await client.POST("/api/v1/auth/change-password", {
         body: { current_password: currentPw, new_password: newPw },
       });
       if (error) {
         setPwMsg({ type: "error", text: extractErrorMessage(error) ?? "Failed to change password" });
       } else {
+        // Changing the password revokes every token issued beforehand — including
+        // the one this tab is holding. The backend returns a replacement so the
+        // user isn't logged out by their own action; store it before anything
+        // else fires a request with the now-dead token.
+        const refreshed = (data as { data?: { access_token?: string } } | undefined)?.data
+          ?.access_token;
+        if (refreshed) {
+          localStorage.setItem("access_token", refreshed);
+        }
         setPwMsg({ type: "success", text: "Password updated" });
         setCurrentPw("");
         setNewPw("");

@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import get_current_user
+from app.core.auth import get_current_user, token_version_matches
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal, get_db
 from app.models.extension_pairing import ExtensionPairing
@@ -31,11 +31,16 @@ _MAX_POLL_ATTEMPTS = 20
 _REFRESH_GRACE_DAYS = 90
 
 
-def _create_extension_token(user_id: str) -> str:
-    """Create a scoped JWT for the extension (aud: pingcrm-extension, 30-day expiry)."""
+def _create_extension_token(user_id: str, token_version: int = 0) -> str:
+    """Create a scoped JWT for the extension (aud: pingcrm-extension, 30-day expiry).
+
+    ``token_version`` is embedded so a password change revokes extension tokens
+    too — otherwise the 90-day refresh grace lets a leaked one renew forever.
+    """
     payload = {
         "sub": user_id,
         "aud": "pingcrm-extension",
+        "tv": token_version,
         "exp": datetime.now(UTC) + timedelta(days=_EXTENSION_TOKEN_EXPIRE_DAYS),
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
@@ -80,10 +85,10 @@ async def create_pairing(
         if existing.user_id != current_user.id:
             raise HTTPException(status_code=409, detail="Pairing code in use by another user")
         # Same user re-submitted the same code — idempotent, update token
-        existing.token = _create_extension_token(str(current_user.id))
+        existing.token = _create_extension_token(str(current_user.id), current_user.token_version)
         existing.expires_at = now + timedelta(minutes=_PAIRING_TTL_MINUTES)
     else:
-        token = _create_extension_token(str(current_user.id))
+        token = _create_extension_token(str(current_user.id), current_user.token_version)
         pairing = ExtensionPairing(
             code=code,
             user_id=current_user.id,
@@ -196,8 +201,12 @@ async def refresh_extension_token(
     user = result.scalar_one_or_none()
     if user is None or user.linkedin_extension_paired_at is None:
         raise credentials_exception
+    # A token minted before a password change must not be refreshable, or the
+    # grace window would resurrect exactly the session the user tried to evict.
+    if not token_version_matches(payload, user):
+        raise credentials_exception
 
-    new_token = _create_extension_token(str(user.id))
+    new_token = _create_extension_token(str(user.id), user.token_version)
     user.linkedin_extension_paired_at = now
     await db.flush()
 

@@ -37,6 +37,34 @@ jobs:
       - name: Check except Exception without logging (soft-fail)
         run: bash .github/scripts/check-exception-handling.sh
 
+  audit-dependencies:
+    # Backend dependencies were never scanned, which is how fastapi==0.115.0 sat
+    # on a starlette held at 0.38.6 with four open CVEs. Soft-fail so a fresh
+    # advisory cannot block a deploy, but it is visible in the run log.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Audit backend dependencies
+        continue-on-error: true
+        run: |
+          python -m pip install --quiet pip-audit
+          pip-audit --requirement backend/requirements.txt --desc
+
+      - name: Audit frontend dependencies
+        continue-on-error: true
+        working-directory: frontend
+        run: npm audit --audit-level=high
+
   build:
     runs-on: ubuntu-latest
     permissions:

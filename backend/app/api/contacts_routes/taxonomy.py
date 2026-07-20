@@ -278,9 +278,13 @@ async def apply_tags(
         )
         contacts_map = {c.id: c for c in c_result.scalars().all()}
 
+        # Scope to the caller. The loop below already skips ids absent from the
+        # user-scoped contacts_map, so nothing foreign was emitted — but without
+        # this filter another user's message previews are read into memory.
         int_result = await db.execute(
             select(Interaction.contact_id, Interaction.content_preview).where(
                 Interaction.contact_id.in_(contact_ids),
+                Interaction.user_id == current_user.id,
                 Interaction.content_preview.isnot(None),
             ).order_by(Interaction.occurred_at.desc())
         )

@@ -8,6 +8,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user, get_extension_or_web_user
+from app.core.rate_limit import enforce_llm_rate_limit
 from app.core.database import get_db
 from app.models.contact import Contact
 from app.models.follow_up import FollowUpSuggestion
@@ -292,6 +293,8 @@ async def regenerate_suggestion(
     current_user: User = Depends(get_extension_or_web_user),
 ) -> Envelope[RegenerateResult]:
     """Re-generate the AI-drafted message for an existing suggestion."""
+    await enforce_llm_rate_limit(str(current_user.id))
+
     result = await db.execute(
         select(FollowUpSuggestion).where(
             FollowUpSuggestion.id == suggestion_id,

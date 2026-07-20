@@ -317,6 +317,31 @@
     }
 
     hideUrlError();
+
+    // The manifest no longer requests https://*/* up front — that granted read
+    // access to cookies on every site the user visits. Self-hosted instances
+    // now ask for their own origin only, at the moment the user names it.
+    const originPattern = `${cleanUrl}/*`;
+    try {
+      const alreadyGranted = await chrome.permissions.contains({
+        origins: [originPattern],
+      });
+      if (!alreadyGranted) {
+        const granted = await chrome.permissions.request({
+          origins: [originPattern],
+        });
+        if (!granted) {
+          showUrlError(
+            "Permission is required to reach your PingCRM instance. Please allow access and try again."
+          );
+          return;
+        }
+      }
+    } catch (e) {
+      showUrlError(e.message || "Could not request site permission.");
+      return;
+    }
+
     setLoading(startPairingBtn, true);
 
     try {

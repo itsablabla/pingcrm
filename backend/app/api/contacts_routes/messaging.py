@@ -6,6 +6,8 @@ import uuid
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from app.core.rate_limit import enforce_llm_rate_limit
+
 from app.api.contacts_routes.shared import (
     Contact,
     datetime,
@@ -153,6 +155,8 @@ async def compose_message(
     current_user: User = Depends(get_current_user),
 ):
     """Generate an AI-drafted reach-out message for a contact (no suggestion required)."""
+    await enforce_llm_rate_limit(str(current_user.id))
+
     result = await db.execute(
         select(Contact).where(Contact.id == contact_id, Contact.user_id == current_user.id)
     )

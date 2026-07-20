@@ -204,13 +204,25 @@ async def whatsapp_webhook(
     """Receive events from the whatsapp-sidecar service."""
     body = await request.body()
 
-    # Verify HMAC signature when secret is configured
-    if settings.WHATSAPP_WEBHOOK_SECRET:
-        if not x_webhook_signature or not _verify_signature(body, x_webhook_signature):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid webhook signature",
-            )
+    # Verify the HMAC signature unconditionally. This endpoint takes `user_id`
+    # straight from the request body and writes contacts/interactions into that
+    # account, so an unsigned request is an unauthenticated cross-account write.
+    # Previously the check was skipped when the secret was unset, which meant a
+    # deploy that dropped the env var would silently expose it — fail closed.
+    if not settings.WHATSAPP_WEBHOOK_SECRET:
+        logger.error(
+            "whatsapp_webhook rejected: WHATSAPP_WEBHOOK_SECRET is not configured",
+            extra={"provider": Provider.WHATSAPP, "operation": "whatsapp_webhook"},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Webhook is not configured",
+        )
+    if not x_webhook_signature or not _verify_signature(body, x_webhook_signature):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid webhook signature",
+        )
 
     try:
         payload = await request.json()

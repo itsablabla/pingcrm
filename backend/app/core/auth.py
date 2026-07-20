@@ -31,8 +31,20 @@ def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = 
         expire = datetime.now(UTC) + expires_delta
     else:
         expire = datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire, "aud": "pingcrm-web"})
+    to_encode.setdefault("aud", "pingcrm-web")
+    to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+
+def token_version_matches(payload: dict[str, Any], user: Any) -> bool:
+    """Whether ``payload`` was minted at the user's current token version.
+
+    Tokens issued before this claim existed carry no ``tv``; they are treated as
+    version 0, which matches the column default so existing sessions survive the
+    rollout. Once a user changes their password the column moves to 1 and every
+    such legacy token stops validating — which is the point.
+    """
+    return int(payload.get("tv", 0)) == int(getattr(user, "token_version", 0) or 0)
 
 
 async def _decode_token_for_user(
@@ -73,6 +85,8 @@ async def _decode_token_for_user(
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if user is None:
+        raise credentials_exception
+    if not token_version_matches(payload, user):
         raise credentials_exception
     return user
 
@@ -125,6 +139,8 @@ async def get_current_user(
     user = result.scalar_one_or_none()
     if user is None:
         raise credentials_exception
+    if not token_version_matches(payload, user):
+        raise credentials_exception
     return user
 
 
@@ -167,6 +183,8 @@ async def get_extension_or_web_user(
             user = result.scalar_one_or_none()
             if user is None:
                 raise credentials_exception
+            if not token_version_matches(payload, user):
+                raise credentials_exception
             return user
         except JWTError:
             continue
@@ -187,6 +205,8 @@ async def get_extension_or_web_user(
         result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
         if user is None:
+            raise credentials_exception
+        if not token_version_matches(payload, user):
             raise credentials_exception
         return user
     except JWTError:
@@ -210,6 +230,11 @@ async def get_current_user_optional(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM],
             options={"verify_aud": False},
         )
+        # Decoding without audience verification is deliberate — legacy tokens
+        # pre-date the claim — but an *explicitly* extension-scoped token must
+        # not pass as a web caller, matching get_current_user's rejection.
+        if payload.get("aud") == "pingcrm-extension":
+            return None
         user_id: str | None = payload.get("sub")
         if user_id is None:
             return None
@@ -217,4 +242,7 @@ async def get_current_user_optional(
         return None
 
     result = await db.execute(select(User).where(User.id == user_id))
-    return result.scalar_one_or_none()
+    user = result.scalar_one_or_none()
+    if user is None or not token_version_matches(payload, user):
+        return None
+    return user

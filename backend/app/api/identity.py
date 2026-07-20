@@ -151,19 +151,21 @@ async def confirm_merge(
     if not match:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match not found")
 
+    # Capture IDs before deletion.
+    contact_a_id = match.contact_a_id
+    contact_b_id = match.contact_b_id
+
+    # Verify ownership *before* the status check. Reporting the status of a
+    # match the caller does not own leaks whether that match exists and what
+    # state it is in; ownership must gate every other response.
+    await _assert_contact_ownership(contact_a_id, current_user.id, db)
+    await _assert_contact_ownership(contact_b_id, current_user.id, db)
+
     if match.status != "pending_review":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Match is not pending review (status={match.status})",
         )
-
-    # Capture IDs before deletion.
-    contact_a_id = match.contact_a_id
-    contact_b_id = match.contact_b_id
-
-    # Verify ownership.
-    await _assert_contact_ownership(contact_a_id, current_user.id, db)
-    await _assert_contact_ownership(contact_b_id, current_user.id, db)
 
     # Delete the pending match and re-merge via the service (which creates a
     # new "merged" IdentityMatch record).
