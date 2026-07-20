@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import create_access_token, get_current_user, get_current_user_optional, hash_password, verify_password
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.rate_limit import client_ip, enforce_rate_limit
 from app.core.redis import get_redis
 from app.integrations.google_auth import build_oauth_url, exchange_code
 from app.models.user import User
@@ -45,9 +46,27 @@ async def _pop_google_state(state: str) -> str | None:
 
 @router.post("/register", response_model=Envelope[UserResponse], status_code=status.HTTP_201_CREATED)
 async def register(
+    request: Request,
     user_in: UserCreate,
     db: AsyncSession = Depends(get_db),
 ) -> Envelope[UserResponse]:
+    if not settings.ALLOW_REGISTRATION:
+        logger.warning(
+            "registration attempt while registration is disabled",
+            extra={"operation": "register", "client_ip": client_ip(request)},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Registration is disabled",
+        )
+
+    await enforce_rate_limit(
+        request,
+        bucket="register",
+        limit=settings.REGISTER_RATE_LIMIT_ATTEMPTS,
+        window_seconds=settings.REGISTER_RATE_LIMIT_WINDOW_SECONDS,
+    )
+
     result = await db.execute(select(User).where(User.email == user_in.email))
     if result.scalar_one_or_none():
         raise HTTPException(
@@ -75,6 +94,13 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
 ) -> Envelope[TokenData]:
+    await enforce_rate_limit(
+        request,
+        bucket="login",
+        limit=settings.LOGIN_RATE_LIMIT_ATTEMPTS,
+        window_seconds=settings.LOGIN_RATE_LIMIT_WINDOW_SECONDS,
+    )
+
     result = await db.execute(select(User).where(User.email == form_data.username))
     user = result.scalar_one_or_none()
 

@@ -54,6 +54,26 @@ import app.core.auth as _auth_module
 _auth_module.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=4)
 
 
+@pytest.fixture(autouse=True)
+def _auth_defaults_for_tests():
+    """Open registration and disable auth throttling for the general test suite.
+
+    Production defaults are closed (``ALLOW_REGISTRATION=False``) and throttled, but
+    most tests register users as fixture setup and would otherwise 403, and a shared
+    fixed-window counter would make them order-dependent. Tests that exercise the
+    gate or the throttle itself override these explicitly.
+    """
+    from app.core.config import settings
+
+    prev_allow = settings.ALLOW_REGISTRATION
+    prev_throttle = settings.AUTH_RATE_LIMIT_ENABLED
+    settings.ALLOW_REGISTRATION = True
+    settings.AUTH_RATE_LIMIT_ENABLED = False
+    yield
+    settings.ALLOW_REGISTRATION = prev_allow
+    settings.AUTH_RATE_LIMIT_ENABLED = prev_throttle
+
+
 async def _ensure_database(url: str) -> None:
     """Create the target database if it doesn't exist (used for per-worker xdist DBs)."""
     import asyncpg

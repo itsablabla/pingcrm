@@ -169,9 +169,13 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException) 
                 "error_detail": str(exc.detail),
             },
         )
+    # Forward exc.headers: rebuilding the response without them silently drops
+    # WWW-Authenticate on 401s and Retry-After on 429s, both of which are part
+    # of the contract callers rely on.
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail},
+        headers=getattr(exc, "headers", None),
     )
 
 

@@ -23,6 +23,18 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"  # Set to "production" in production deployments
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
 
+    # PingCRM is single-player: there is no reason for the public internet to be
+    # able to create accounts. Defaults to off so a deployment is closed even if
+    # nobody remembers to plumb the env var through docker-compose.prod.yml.
+    ALLOW_REGISTRATION: bool = False
+
+    # Fixed-window throttles on the unauthenticated auth endpoints, keyed by client IP.
+    AUTH_RATE_LIMIT_ENABLED: bool = True
+    LOGIN_RATE_LIMIT_ATTEMPTS: int = 10
+    LOGIN_RATE_LIMIT_WINDOW_SECONDS: int = 900  # 15 minutes
+    REGISTER_RATE_LIMIT_ATTEMPTS: int = 5
+    REGISTER_RATE_LIMIT_WINDOW_SECONDS: int = 3600  # 1 hour
+
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_REDIRECT_URI: str = "http://localhost:3000/auth/google/callback"
