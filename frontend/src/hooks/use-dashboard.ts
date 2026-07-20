@@ -41,6 +41,15 @@ export function useDashboardStats() {
     contactsResult.isError ||
     activityResult.isError;
 
+  const error =
+    contactsResult.error ?? suggestionsResult.error ?? activityResult.error ?? null;
+
+  const refetch = () => {
+    suggestionsResult.refetch();
+    contactsResult.refetch();
+    activityResult.refetch();
+  };
+
   return {
     suggestions: suggestionsResult.suggestions as Suggestion[],
     statsReady: contactsResult.statsReady,
@@ -49,5 +58,7 @@ export function useDashboardStats() {
     recentActivity: activityResult.recentActivity,
     isLoading,
     isError,
+    error,
+    refetch,
   };
 }

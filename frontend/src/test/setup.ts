@@ -7,6 +7,31 @@ afterEach(() => {
   cleanup();
 });
 
+// Node >= 22 exposes its own `localStorage` global, which shadows the jsdom one and
+// is unusable without --localstorage-file (calling .clear() throws
+// "localStorage.clear is not a function"). CI runs Node 20 so it never hits this,
+// but local runs on newer Node fail in any test that touches storage. Install a
+// plain in-memory implementation whenever the ambient one is missing or broken.
+const ambientStorage = globalThis.localStorage as Storage | undefined;
+if (typeof ambientStorage?.clear !== "function") {
+  const store = new Map<string, string>();
+  const memoryStorage: Storage = {
+    get length() {
+      return store.size;
+    },
+    clear: () => store.clear(),
+    getItem: (key: string) => store.get(key) ?? null,
+    key: (index: number) => Array.from(store.keys())[index] ?? null,
+    removeItem: (key: string) => void store.delete(key),
+    setItem: (key: string, value: string) => void store.set(key, String(value)),
+  };
+  Object.defineProperty(globalThis, "localStorage", {
+    value: memoryStorage,
+    configurable: true,
+    writable: true,
+  });
+}
+
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
   useSearchParams: vi.fn(() => ({

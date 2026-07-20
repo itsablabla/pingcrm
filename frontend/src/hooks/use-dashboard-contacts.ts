@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { client } from "@/lib/api-client";
+import { extractErrorMessage } from "@/lib/api-errors";
 import type { OverdueContact } from "@/hooks/use-dashboard";
 
 type ContactStats = {
@@ -30,7 +31,10 @@ export function useDashboardContacts() {
   const statsQuery = useQuery({
     queryKey: ["contacts", "stats"],
     queryFn: async () => {
-      const { data } = await client.GET("/api/v1/contacts/stats");
+      const { data, error } = await client.GET("/api/v1/contacts/stats");
+      // Falling back to null here would resolve the query successfully and render
+      // as "0 contacts" — a failure indistinguishable from an empty account.
+      if (error) throw new Error(extractErrorMessage(error) ?? "Failed to load contact stats");
       return data ?? null;
     },
     refetchInterval: DASHBOARD_REFETCH_MS,
@@ -39,9 +43,10 @@ export function useDashboardContacts() {
   const overdueQuery = useQuery({
     queryKey: ["contacts", "overdue"],
     queryFn: async () => {
-      const { data } = await client.GET("/api/v1/contacts/overdue", {
+      const { data, error } = await client.GET("/api/v1/contacts/overdue", {
         params: { query: { limit: 5 } },
       });
+      if (error) throw new Error(extractErrorMessage(error) ?? "Failed to load overdue contacts");
       return data ?? { data: [], error: null };
     },
     refetchInterval: DASHBOARD_REFETCH_MS,
@@ -53,5 +58,10 @@ export function useDashboardContacts() {
     overdueContacts: (overdueQuery.data?.data ?? []) as OverdueContact[],
     isLoading: statsQuery.isLoading || overdueQuery.isLoading,
     isError: statsQuery.isError || overdueQuery.isError,
+    error: statsQuery.error ?? overdueQuery.error,
+    refetch: () => {
+      void statsQuery.refetch();
+      void overdueQuery.refetch();
+    },
   };
 }

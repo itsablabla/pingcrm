@@ -446,3 +446,51 @@ describe("DashboardPage", () => {
     expect(screen.getByRole("heading", { name: /Dashboard/i })).toBeInTheDocument();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Error state
+//
+// A failed fetch must never render as "you have no data". The dashboard used to
+// destructure useDashboardStats() without isError, so any network failure fell
+// through to stats.total === 0 and showed the onboarding empty state — telling a
+// user with 4,343 contacts that they had none.
+// ---------------------------------------------------------------------------
+describe("DashboardPage error state", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("surfaces an error message when dashboard queries fail", () => {
+    mockDashboard({ isError: true });
+    renderPage();
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(screen.getByText(/couldn't load your dashboard/i)).toBeInTheDocument();
+  });
+
+  it("does not show the onboarding empty state when the fetch failed", () => {
+    mockDashboard({ isError: true });
+    renderPage();
+    expect(
+      screen.queryByText("Connect your accounts to get started")
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not render zeroed stat cards when the fetch failed", () => {
+    mockDashboard({ isError: true });
+    renderPage();
+    expect(screen.queryByText("Total contacts")).not.toBeInTheDocument();
+  });
+
+  it("offers a retry affordance when the fetch failed", () => {
+    mockDashboard({ isError: true });
+    renderPage();
+    expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
+  });
+
+  it("still renders real stats when there is no error", () => {
+    mockDashboard({ stats: { ...defaultStats, total: 4343 } });
+    renderPage();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByText("Total contacts")).toBeInTheDocument();
+  });
+});

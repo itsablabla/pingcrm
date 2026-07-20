@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import {
   Users,
@@ -8,6 +8,7 @@ import {
   MessageCircle,
   Twitter,
   Plug,
+  AlertTriangle,
 } from "lucide-react";
 import { AnimatedNumber } from "@/components/animated-number";
 import {
@@ -23,15 +24,26 @@ import { NeedsAttentionWidget } from "./_components/needs-attention-widget";
 // Dashboard Page
 // ---------------------------------------------------------------------------
 export default function DashboardPage() {
-  const { suggestions, stats, statsReady, overdueContacts, recentActivity, isLoading } =
-    useDashboardStats();
+  const {
+    suggestions,
+    stats,
+    statsReady,
+    overdueContacts,
+    recentActivity,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useDashboardStats();
 
   const allPending = suggestions.filter((s) => s.status === "pending");
   const pendingSuggestions = allPending.slice(0, 5);
 
   // Only show empty state when stats API has confirmed total=0.
   // Without statsReady, a slow/failed stats fetch would flash the empty state.
-  const isEmpty = statsReady && stats.total === 0 && !isLoading;
+  // isError is part of the condition because "we couldn't reach the API" must never
+  // be rendered as "you have no contacts".
+  const isEmpty = statsReady && stats.total === 0 && !isLoading && !isError;
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-stone-950 overflow-x-hidden">
@@ -61,6 +73,40 @@ export default function DashboardPage() {
             )}
           </p>
         </div>
+
+        {/* Error state — must win over every data region below, so a failed
+            fetch is never dressed up as an empty account. */}
+        {isError && (
+          <div
+            role="alert"
+            className="bg-white dark:bg-stone-900 rounded-2xl border border-red-200 dark:border-red-900 p-6 mb-8"
+          >
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <h2 className="text-base font-display font-bold text-stone-900 dark:text-stone-100">
+                  Couldn&apos;t load your dashboard
+                </h2>
+                <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">
+                  Your data is safe — this is a problem reaching the API, not missing
+                  contacts. If it persists, check your network or browser extensions.
+                </p>
+                {error?.message && (
+                  <p className="text-xs font-mono text-stone-400 dark:text-stone-500 mt-2 break-words">
+                    {error.message}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={refetch}
+                  className="mt-4 px-3 py-1.5 text-sm font-medium rounded-lg border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Empty state — inline onboarding */}
         {isEmpty && (
@@ -118,7 +164,7 @@ export default function DashboardPage() {
         )}
 
         {/* Stat cards */}
-        {!isEmpty && (
+        {!isEmpty && !isError && (
           <div className="animate-in stagger-1 grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             <StatCard
               icon={<Users className="w-4 h-4 text-teal-600 dark:text-teal-400" />}
@@ -149,7 +195,7 @@ export default function DashboardPage() {
         )}
 
         {/* Two-column layout */}
-        {!isEmpty && (
+        {!isEmpty && !isError && (
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-6">
             {/* LEFT 3/5: Pending Follow-ups + Recent Activity */}
             <div className="lg:col-span-3 space-y-6">
