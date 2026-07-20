@@ -231,8 +231,11 @@ function startPairing() {
     });
   }, PAIRING_POLL_INTERVAL_MS);
 
-  // Persist initial code so the popup can read it even after a service worker restart
+  // Persist initial code so the popup can read it even after a service worker
+  // restart, and clear any give-up marker from a previous attempt so the popup
+  // doesn't show a stale failure over a fresh code.
   chrome.storage.local.set({ _pairingCode: _currentCode });
+  chrome.storage.local.remove(["_pairingError"]);
 
   return { code: _currentCode, done };
 }

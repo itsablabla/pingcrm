@@ -126,3 +126,18 @@ test("does not poll before the instance URL is configured", async () => {
   assert.equal(outcome, "no_url");
   assert.equal(h.calls.length, 0, "no request without an apiUrl");
 });
+
+test("starting a new attempt clears a previous give-up marker", async () => {
+  const h = harness({
+    seed: { apiUrl: "http://x", _pairingError: "POLL_FAILED" },
+    respond: () => status(404),
+  });
+
+  h.api.startPairing();
+
+  assert.equal(
+    h.store.get("_pairingError"),
+    undefined,
+    "stale failure cleared so the popup does not show it over a fresh code"
+  );
+});

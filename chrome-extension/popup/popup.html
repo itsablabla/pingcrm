@@ -44,10 +44,12 @@
       <div class="pairing-code-block">
         <p class="pairing-hint">Enter this code in PingCRM Settings</p>
         <div class="pairing-code" id="pairing-code-display">—</div>
-        <div class="pairing-waiting">
+        <div class="pairing-waiting" id="pairing-waiting">
           <span class="waiting-dot"></span>
           <span>Waiting for pairing…</span>
         </div>
+        <p id="pairing-error" class="error-msg hidden"></p>
+        <button id="retry-pairing-btn" class="btn-text hidden">Try again</button>
       </div>
       <button id="change-url-btn" class="btn-text">Change instance URL</button>
       <p class="footer-note">Go to <strong>Settings → Extensions</strong> in your PingCRM instance and enter the code above. It expires in 10 minutes.</p>

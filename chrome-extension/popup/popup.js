@@ -28,6 +28,9 @@
   const urlError = document.getElementById("url-error");
   const startPairingBtn = document.getElementById("start-pairing-btn");
   const pairingCodeDisplay = document.getElementById("pairing-code-display");
+  const pairingWaiting = document.getElementById("pairing-waiting");
+  const pairingError = document.getElementById("pairing-error");
+  const retryPairingBtn = document.getElementById("retry-pairing-btn");
   const changeUrlBtn = document.getElementById("change-url-btn");
 
   // ── Connected view elements ──
@@ -84,6 +87,7 @@
       "messageCount",
       "lastVoyagerSync",
       "_pairingCode",
+      "_pairingError",
       "metaCookiesValid",
       "lastFacebookSync",
       "lastInstagramSync",
@@ -118,6 +122,10 @@
     // If a pairing code is already active (service worker regenerated it), show it
     if (state._pairingCode) {
       pairingCodeDisplay.textContent = state._pairingCode;
+      // The poll loop gives up after a sustained run of failures. Say so —
+      // leaving "Waiting for pairing…" spinning forever is a lie once the
+      // service worker has stopped polling.
+      renderPairingError(state._pairingError);
       showPairingStep("code");
     } else {
       // Prefill URL if previously stored
@@ -125,6 +133,18 @@
         instanceUrlInput.value = state.apiUrl;
       }
       showPairingStep("url");
+    }
+  }
+
+  function renderPairingError(code) {
+    const failed = code === "POLL_FAILED";
+    pairingWaiting.classList.toggle("hidden", failed);
+    pairingError.classList.toggle("hidden", !failed);
+    retryPairingBtn.classList.toggle("hidden", !failed);
+    if (failed) {
+      pairingError.textContent =
+        "Couldn't reach your PingCRM instance. Check the URL, your network, " +
+        "and any ad blocker or privacy extension that may be blocking requests.";
     }
   }
 
@@ -311,11 +331,32 @@
       }
 
       pairingCodeDisplay.textContent = response.code;
+      renderPairingError(null);
       showPairingStep("code");
     } catch (e) {
       showUrlError(e.message || "Extension error. Please reload.");
     } finally {
       setLoading(startPairingBtn, false);
+    }
+  });
+
+  // Retry after the poll loop gave up: restart pairing against the stored URL.
+  retryPairingBtn.addEventListener("click", async () => {
+    const { apiUrl } = await chrome.storage.local.get(["apiUrl"]);
+    if (!apiUrl) {
+      showPairingStep("url");
+      return;
+    }
+    setLoading(retryPairingBtn, true);
+    try {
+      const response = await chrome.runtime.sendMessage({ type: "START_PAIRING", apiUrl });
+      if (!response || !response.ok) return;
+      pairingCodeDisplay.textContent = response.code;
+      renderPairingError(null);
+    } catch (e) {
+      console.warn("[PingCRM Popup] Retry pairing failed:", e.message);
+    } finally {
+      setLoading(retryPairingBtn, false);
     }
   });
 
