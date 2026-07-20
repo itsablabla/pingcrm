@@ -20,11 +20,20 @@ const PAIRING_CODE_LENGTH = 6;
 const PAIRING_PREFIX = "PING-";
 const PAIRING_POLL_INTERVAL_MS = 3000;   // Poll every 3 seconds
 const PAIRING_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+// Cap how long a single poll may hold a connection. Without this a stalled
+// request never settles, and since Chrome allows only ~6 concurrent connections
+// per host, a handful of hung polls starve every other request to the same
+// origin — including the PingCRM tab's own API calls.
+const PAIRING_POLL_TIMEOUT_MS = 10 * 1000;
+// Give up after ~1 minute of consecutive failures rather than polling forever.
+const PAIRING_MAX_CONSECUTIVE_ERRORS = 20;
 
 // Module-level state (survives within the service worker's lifetime)
 let _pollIntervalId = null;
 let _currentCode = null;
 let _codeGeneratedAt = null;
+let _pollInFlight = false;
+let _consecutiveErrors = 0;
 
 // ── Code generation ───────────────────────────────────────────────────────────
 
@@ -83,7 +92,7 @@ async function _pollOnce(apiUrl, code) {
   try {
     const resp = await fetch(
       `${apiUrl}/api/v1/extension/pair?code=${encodeURIComponent(code)}`,
-      { method: "GET" }
+      { method: "GET", signal: AbortSignal.timeout(PAIRING_POLL_TIMEOUT_MS) }
     );
 
     if (resp.status === 200) {
@@ -127,6 +136,75 @@ async function _pollOnce(apiUrl, code) {
  *   code - The initial pairing code to display in the popup.
  *   done - Resolves when pairing completes (token stored).
  */
+/**
+ * Run one poll cycle: regenerate the code if expired, poll the backend once,
+ * and act on the outcome.
+ *
+ * Extracted from the interval callback so it can be driven directly in tests
+ * without a live timer.
+ *
+ * @param {() => void} [onPaired] - invoked once pairing succeeds
+ * @returns {Promise<"paired"|"pending"|"expired"|"rate_limited"|"error"|"no_url"|"gave_up">}
+ */
+async function _runPollCycle(onPaired) {
+  // Auto-regenerate if code has exceeded local expiry window
+  if (Date.now() - _codeGeneratedAt >= PAIRING_EXPIRY_MS) {
+    _currentCode = generatePairingCode();
+    _codeGeneratedAt = Date.now();
+    // Notify any listeners (popup may be listening for storage changes)
+    await chrome.storage.local.set({ _pairingCode: _currentCode });
+    console.log("[PingCRM Pairing] Code regenerated (expiry):", _currentCode);
+  }
+
+  const apiUrl = await getStoredApiUrl();
+  if (!apiUrl) {
+    // No URL yet — wait for the user to enter it
+    return "no_url";
+  }
+
+  const outcome = await _pollOnce(apiUrl, _currentCode);
+
+  if (outcome === "paired") {
+    console.log("[PingCRM Pairing] Paired successfully");
+    stopPolling();
+    await chrome.storage.local.remove(["_pairingCode"]);
+    if (onPaired) onPaired();
+    return outcome;
+  }
+
+  if (outcome === "expired") {
+    // Backend says code is expired — generate a new one immediately
+    _consecutiveErrors = 0;
+    _currentCode = generatePairingCode();
+    _codeGeneratedAt = Date.now();
+    await chrome.storage.local.set({ _pairingCode: _currentCode });
+    console.log("[PingCRM Pairing] Code regenerated (server 410):", _currentCode);
+    return outcome;
+  }
+
+  if (outcome === "error") {
+    _consecutiveErrors++;
+    if (_consecutiveErrors >= PAIRING_MAX_CONSECUTIVE_ERRORS) {
+      // The backend is unreachable or misbehaving. Polling forever keeps the
+      // service worker alive and keeps burning connections to the host, so stop
+      // and let the popup surface the failure.
+      console.error(
+        "[PingCRM Pairing] Giving up after",
+        _consecutiveErrors,
+        "consecutive poll failures"
+      );
+      stopPolling();
+      await chrome.storage.local.set({ _pairingError: "POLL_FAILED" });
+      return "gave_up";
+    }
+    return outcome;
+  }
+
+  // "pending" / "rate_limited" — backend answered, so the connection is healthy
+  _consecutiveErrors = 0;
+  return outcome;
+}
+
 function startPairing() {
   // Stop any existing poll loop
   stopPolling();
@@ -139,37 +217,18 @@ function startPairing() {
   let resolveDone;
   const done = new Promise(resolve => { resolveDone = resolve; });
 
-  _pollIntervalId = setInterval(async () => {
-    // Auto-regenerate if code has exceeded local expiry window
-    if (Date.now() - _codeGeneratedAt >= PAIRING_EXPIRY_MS) {
-      _currentCode = generatePairingCode();
-      _codeGeneratedAt = Date.now();
-      // Notify any listeners (popup may be listening for storage changes)
-      await chrome.storage.local.set({ _pairingCode: _currentCode });
-      console.log("[PingCRM Pairing] Code regenerated (expiry):", _currentCode);
-    }
-
-    const apiUrl = await getStoredApiUrl();
-    if (!apiUrl) {
-      // No URL yet — wait for the user to enter it
+  _pollIntervalId = setInterval(() => {
+    // setInterval does not await an async callback, so without this guard a poll
+    // that outlives the 3s interval overlaps with the next one and connections
+    // pile up without bound. Skip the tick instead of stacking requests.
+    if (_pollInFlight) {
+      console.warn("[PingCRM Pairing] Previous poll still in flight, skipping tick");
       return;
     }
-
-    const outcome = await _pollOnce(apiUrl, _currentCode);
-
-    if (outcome === "paired") {
-      console.log("[PingCRM Pairing] Paired successfully");
-      stopPolling();
-      await chrome.storage.local.remove(["_pairingCode"]);
-      resolveDone();
-    } else if (outcome === "expired") {
-      // Backend says code is expired — generate a new one immediately
-      _currentCode = generatePairingCode();
-      _codeGeneratedAt = Date.now();
-      await chrome.storage.local.set({ _pairingCode: _currentCode });
-      console.log("[PingCRM Pairing] Code regenerated (server 410):", _currentCode);
-    }
-    // "pending", "rate_limited", "error" — no action, keep polling
+    _pollInFlight = true;
+    void _runPollCycle(resolveDone).finally(() => {
+      _pollInFlight = false;
+    });
   }, PAIRING_POLL_INTERVAL_MS);
 
   // Persist initial code so the popup can read it even after a service worker restart
@@ -189,4 +248,6 @@ function stopPolling() {
   }
   _currentCode = null;
   _codeGeneratedAt = null;
+  _consecutiveErrors = 0;
+  _pollInFlight = false;
 }

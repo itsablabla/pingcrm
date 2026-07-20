@@ -80,6 +80,10 @@ export function loadModules({ chrome, fetchImpl, files, fixedNow, exports = [] }
     Date: fixedNow ? FixedDate : Date,
     TextEncoder,
     TextDecoder,
+    // Real timers — AbortSignal.timeout() must not be shortened by the
+    // immediate-resolve setTimeout stub above, or every fetch aborts instantly.
+    AbortController,
+    AbortSignal,
     URL,
     URLSearchParams,
     structuredClone,
