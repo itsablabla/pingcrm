@@ -16,6 +16,14 @@ const config: Config = {
 
   onBrokenLinks: 'throw',
 
+  scripts: [
+    {
+      src: 'https://analytics.ahrefs.com/analytics.js',
+      'data-key': 'pYH/+c+AReJ81lQKzn+3kA',
+      async: true,
+    },
+  ],
+
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],

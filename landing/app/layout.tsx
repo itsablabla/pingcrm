@@ -118,6 +118,11 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
         />
+        <script
+          async
+          src="https://analytics.ahrefs.com/analytics.js"
+          data-key="pYH/+c+AReJ81lQKzn+3kA"
+        />
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-WVR19X9096" />
         <script
           dangerouslySetInnerHTML={{
