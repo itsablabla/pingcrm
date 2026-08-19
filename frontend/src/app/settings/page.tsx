@@ -13,7 +13,10 @@ import { FollowUpRulesTab } from "./_components/followup-tab";
 import { TagsTab } from "./_components/tags-tab";
 import { AccountTab } from "./_components/account-tab";
 
-export const dynamic = "force-dynamic";
+// NOTE: `export const dynamic` is a no-op in a "use client" module — Next.js
+// only honours route segment config in server components. This route reads
+// search params on load (which works when prerendered) and never mutates them
+// client-side, so static rendering is correct here.
 
 /* ── Tab metadata (labels + icons for the bar) ── */
 const TABS = [

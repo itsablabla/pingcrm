@@ -23,6 +23,38 @@ import { NeedsAttentionWidget } from "./_components/needs-attention-widget";
 // ---------------------------------------------------------------------------
 // Dashboard Page
 // ---------------------------------------------------------------------------
+/** Summary line under the Dashboard title. */
+function DashboardSubheading({
+  pendingCount,
+  visiblePendingCount,
+  overdueCount,
+}: {
+  pendingCount: number;
+  visiblePendingCount: number;
+  overdueCount: number;
+}) {
+  if (visiblePendingCount === 0 && overdueCount === 0) {
+    return <>Your networking overview</>;
+  }
+  return (
+    <>
+      You have{" "}
+      {visiblePendingCount > 0 && (
+        <strong className="text-teal-700 dark:text-teal-400">
+          {pendingCount} pending suggestion{pendingCount !== 1 ? "s" : ""}
+        </strong>
+      )}
+      {visiblePendingCount > 0 && overdueCount > 0 && " and "}
+      {overdueCount > 0 && (
+        <strong className="text-stone-700 dark:text-stone-300">
+          {overdueCount} contact{overdueCount !== 1 ? "s" : ""}
+        </strong>
+      )}
+      {overdueCount > 0 && " need attention this week."}
+    </>
+  );
+}
+
 export default function DashboardPage() {
   const {
     suggestions,
@@ -52,25 +84,11 @@ export default function DashboardPage() {
         <div className="mb-8">
           <h1 className="text-2xl font-display font-bold text-stone-900 dark:text-stone-100">Dashboard</h1>
           <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">
-            {pendingSuggestions.length > 0 || overdueContacts.length > 0 ? (
-              <>
-                You have{" "}
-                {pendingSuggestions.length > 0 && (
-                  <strong className="text-teal-700 dark:text-teal-400">
-                    {allPending.length} pending suggestion{allPending.length !== 1 ? "s" : ""}
-                  </strong>
-                )}
-                {pendingSuggestions.length > 0 && overdueContacts.length > 0 && " and "}
-                {overdueContacts.length > 0 && (
-                  <strong className="text-stone-700 dark:text-stone-300">
-                    {overdueContacts.length} contact{overdueContacts.length !== 1 ? "s" : ""}
-                  </strong>
-                )}
-                {overdueContacts.length > 0 && " need attention this week."}
-              </>
-            ) : (
-              "Your networking overview"
-            )}
+            <DashboardSubheading
+              pendingCount={allPending.length}
+              visiblePendingCount={pendingSuggestions.length}
+              overdueCount={overdueContacts.length}
+            />
           </p>
         </div>
 

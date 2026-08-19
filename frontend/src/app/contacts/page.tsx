@@ -17,7 +17,8 @@ import { ContactsToolbar } from "./_components/contacts-toolbar";
 import { BulkActionBar, Pagination } from "./_components/bulk-action-bar";
 import { ScoreNumberBadge, PriorityBadge, PlatformIcons, DaysAgo } from "./_components/row-badges";
 
-export const dynamic = "force-dynamic";
+// NOTE: route segment config (`export const dynamic`) belongs in layout.tsx —
+// Next.js ignores it in a "use client" module. See ./layout.tsx.
 
 // ---------------------------------------------------------------------------
 // Constants

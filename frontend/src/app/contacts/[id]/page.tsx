@@ -18,6 +18,13 @@ import { RelatedContactsCard } from "./_components/related-contacts-card";
 import { DuplicatesCard } from "./_components/duplicates-card";
 import { AddNoteInput } from "./_components/add-note-input";
 
+/** Fields the API can reject with a 409 conflict, mapped to their toast label. */
+const CONFLICT_FIELD_LABELS: Record<string, string> = {
+  telegram_username: "Telegram username",
+  twitter_handle: "Twitter handle",
+  emails: "Email",
+};
+
 export default function ContactDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -68,7 +75,7 @@ export default function ContactDetailPage() {
 
   /* ── Page-level helpers ── */
 
-  const saveField = async (field: string, value: string | string[]) => {
+  const buildUpdateInput = (field: string, value: string | string[]) => {
     const input: Record<string, string | string[]> = { [field]: value };
     if (field === "given_name" || field === "family_name") {
       const given =
@@ -77,52 +84,56 @@ export default function ContactDetailPage() {
         field === "family_name" ? (value as string) : (contact.family_name ?? "");
       input.full_name = [given, family].filter(Boolean).join(" ") || "";
     }
-    if (field === "telegram_username" || field === "twitter_handle" || field === "emails") {
-      try {
-        await ctrl.updateContact.mutateAsync({ id, input });
-      } catch (err: unknown) {
-        const apiError = (err as Error & { apiError?: ApiError }).apiError;
-        if (apiError?.kind === "conflict") {
-          const conflicting = apiError.conflictingContact;
-          const conflictingId = conflicting.id;
-          const platformLabel =
-            field === "telegram_username"
-              ? "Telegram username"
-              : field === "twitter_handle"
-                ? "Twitter handle"
-                : "Email";
-          ctrl.setToast({
-            type: "error",
-            text: `${platformLabel} already used by ${conflicting.full_name || "another contact"}`,
-            action: {
-              label: "Merge",
-              onClick: () => {
-                ctrl.setToast(null);
-                mergeContacts.mutate(
-                  { contactId: id, otherId: conflictingId },
-                  {
-                    onSuccess: (result) => {
-                      const mergedId = result?.data?.id;
-                      if (mergedId && mergedId !== id) {
-                        router.push(`/contacts/${mergedId}`);
-                      } else {
-                        router.refresh();
-                      }
-                    },
-                    onError: () => {
-                      ctrl.setToast({ type: "error", text: "Merge failed. Try again." });
-                    },
-                  },
-                );
-              },
-            },
-          });
-        }
-        // Don't re-throw — toast shows the error
-      }
+    return input;
+  };
+
+  const mergeWith = (conflictingId: string) => {
+    ctrl.setToast(null);
+    mergeContacts.mutate(
+      { contactId: id, otherId: conflictingId },
+      {
+        onSuccess: (result) => {
+          const mergedId = result?.data?.id;
+          if (mergedId && mergedId !== id) {
+            router.push(`/contacts/${mergedId}`);
+          } else {
+            router.refresh();
+          }
+        },
+        onError: () => {
+          ctrl.setToast({ type: "error", text: "Merge failed. Try again." });
+        },
+      },
+    );
+  };
+
+  const showConflictToast = (field: string, apiError: Extract<ApiError, { kind: "conflict" }>) => {
+    const conflicting = apiError.conflictingContact;
+    const conflictingId = conflicting.id;
+    ctrl.setToast({
+      type: "error",
+      text: `${CONFLICT_FIELD_LABELS[field] ?? "Value"} already used by ${conflicting.full_name || "another contact"}`,
+      action: { label: "Merge", onClick: () => mergeWith(conflictingId) },
+    });
+  };
+
+  const saveField = async (field: string, value: string | string[]) => {
+    const input = buildUpdateInput(field, value);
+
+    if (!(field in CONFLICT_FIELD_LABELS)) {
+      ctrl.updateContact.mutate({ id, input });
       return;
     }
-    ctrl.updateContact.mutate({ id, input });
+
+    try {
+      await ctrl.updateContact.mutateAsync({ id, input });
+    } catch (err: unknown) {
+      const apiError = (err as Error & { apiError?: ApiError }).apiError;
+      if (apiError?.kind === "conflict") {
+        showConflictToast(field, apiError);
+      }
+      // Don't re-throw — toast shows the error
+    }
   };
 
   const handleLinkOrg = (orgId: string, orgName: string) => {

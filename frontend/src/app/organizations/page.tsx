@@ -9,7 +9,8 @@ import { client } from "@/lib/api-client";
 import { OrgListContent } from "./_components/OrgListContent";
 import { OrgPagination } from "./_components/OrgPagination";
 
-export const dynamic = "force-dynamic";
+// NOTE: route segment config (`export const dynamic`) belongs in layout.tsx —
+// Next.js ignores it in a "use client" module. See ./layout.tsx.
 
 const EMPTY_SET = new Set<string>();
 

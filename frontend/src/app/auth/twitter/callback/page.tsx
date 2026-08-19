@@ -4,7 +4,10 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { client } from "@/lib/api-client";
 
-export const dynamic = "force-dynamic";
+// NOTE: `export const dynamic` is a no-op in a "use client" module — Next.js
+// only honours route segment config in server components. This route reads
+// search params on load (which works when prerendered) and never mutates them
+// client-side, so static rendering is correct here.
 
 function TwitterCallbackInner() {
   const searchParams = useSearchParams();
