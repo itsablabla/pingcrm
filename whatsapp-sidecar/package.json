@@ -15,5 +15,8 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "overrides": {
+    "@puppeteer/browsers": "^3.2.1"
   }
 }
