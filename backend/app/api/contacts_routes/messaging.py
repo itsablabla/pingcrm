@@ -31,7 +31,7 @@ router = APIRouter(prefix="/api/v1/contacts", tags=["contacts"])
 
 class SendMessageBody(BaseModel):
     message: str
-    channel: str  # "telegram" | "twitter" | "email"
+    channel: str  # "telegram" | "beeper" | "email"
     scheduled_for: datetime | None = None  # ISO datetime for scheduled send (Telegram only)
 
 
@@ -48,7 +48,8 @@ async def send_message(
 ) -> Envelope[SendMessageData]:
     """Send a message to a contact via the specified channel.
 
-    Currently supports Telegram. Creates an Interaction record on success.
+    Supports Telegram and Beeper (unified messaging). Creates an Interaction
+    record on success.
     """
     from datetime import UTC, datetime
 
@@ -111,14 +112,55 @@ async def send_message(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail="Failed to send Telegram message. Please try again.",
             ) from exc
+    elif body.channel == "beeper":
+        from app.integrations.beeper import BeeperAuthError, BeeperClient, BeeperError, BeeperNotFoundError
+
+        client = BeeperClient()
+        if not client.is_configured:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="BEEPER_API_TOKEN is not configured on this deployment",
+            )
+        chat_id = contact.beeper_chat_id
+        if not chat_id:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Contact has no known Beeper chat (sync first)",
+            )
+        try:
+            sent = await client.send_message(chat_id, body.message.strip())
+        except BeeperAuthError as exc:
+            logger.error("Beeper auth rejected while sending for user %s — %s", current_user.id, exc)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        except BeeperNotFoundError as exc:
+            logger.warning("Beeper chat %s not found while sending — %s", chat_id, exc)
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        except BeeperError as exc:
+            logger.exception("Failed to send Beeper message to chat %s", chat_id)
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Failed to send message via Beeper. Please try again.",
+            ) from exc
+        pending_id = sent.get("pendingMessageID") or ""
+        # "pending:" marker matches beeper_helpers.upsert_beeper_interaction's
+        # second-chance dedup: the next sync upgrades this row in place once
+        # the bridge confirms the real message ID.
+        send_result = {
+            "message_id": pending_id,
+            "raw_reference_id": f"pending:{pending_id}" if pending_id else None,
+        }
     else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Sending via '{body.channel}' is not yet supported. Only 'telegram' is available.",
+            detail=f"Sending via '{body.channel}' is not yet supported. Only 'telegram' and 'beeper' are available.",
         )
 
     # Record the interaction
     from app.models.interaction import Interaction
+
+    raw_reference_id = send_result.get("raw_reference_id")
+    if raw_reference_id is None:
+        raw_reference_id = f"sent:{send_result.get('message_id', '')}"
 
     interaction = Interaction(
         contact_id=contact.id,
@@ -127,7 +169,7 @@ async def send_message(
         direction="outbound",
         content_preview=body.message.strip()[:500],
         occurred_at=datetime.now(UTC),
-        raw_reference_id=f"sent:{send_result.get('message_id', '')}",
+        raw_reference_id=raw_reference_id,
     )
     db.add(interaction)
 

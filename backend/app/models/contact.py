@@ -73,6 +73,13 @@ class Contact(Base):
     whatsapp_avatar_url: Mapped[str | None] = mapped_column(String, nullable=True)
     whatsapp_bio_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # Beeper unified messaging identity: stable across every bridged network.
+    beeper_user_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+    beeper_display_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    # Chat routing hint for outbound sends (which Beeper chat to message).
+    beeper_chat_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    beeper_network: Mapped[str | None] = mapped_column(String, nullable=True)
+
     facebook_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
     facebook_name: Mapped[str | None] = mapped_column(String, nullable=True)
     facebook_avatar_url: Mapped[str | None] = mapped_column(String, nullable=True)

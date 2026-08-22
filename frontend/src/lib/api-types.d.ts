@@ -772,7 +772,8 @@ export interface paths {
          * Send Message
          * @description Send a message to a contact via the specified channel.
          *
-         *     Currently supports Telegram. Creates an Interaction record on success.
+         *     Supports Telegram and Beeper (unified messaging). Creates an Interaction
+         *     record on success.
          */
         post: operations["send_message_api_v1_contacts__contact_id__send_message_post"];
         delete?: never;
@@ -2050,6 +2051,109 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/beeper/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Beeper Status
+         * @description Beeper connection state plus the bridged accounts the token can see.
+         */
+        get: operations["beeper_status_api_v1_beeper_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/beeper/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Beeper Connect
+         * @description Enable/disable Beeper sync for the current user.
+         */
+        post: operations["beeper_connect_api_v1_beeper_connect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/beeper/disconnect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Beeper Disconnect
+         * @description Disable Beeper sync for the current user (history is kept).
+         */
+        post: operations["beeper_disconnect_api_v1_beeper_disconnect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/beeper/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Beeper Sync
+         * @description Queue a manual Beeper sync for the current user.
+         */
+        post: operations["beeper_sync_api_v1_beeper_sync_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/beeper/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Beeper Send Message
+         * @description Send a text message through Beeper and record it as an interaction.
+         *
+         *     Provide either ``chat_id`` (a Beeper chat ID) or ``contact_id`` (resolves
+         *     to the contact's ``beeper_chat_id`` saved during sync).
+         */
+        post: operations["beeper_send_message_api_v1_beeper_messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/meta/push": {
         parameters: {
             query?: never;
@@ -2212,6 +2316,52 @@ export interface components {
             /** Linkedin Url */
             linkedin_url?: string | null;
         };
+        /** BeeperAccountInfo */
+        BeeperAccountInfo: {
+            /** Accountid */
+            accountID?: string | null;
+            /** Network */
+            network?: string | null;
+            /** Status */
+            status?: string | null;
+            /** Username */
+            username?: string | null;
+        };
+        /** BeeperConnectedData */
+        BeeperConnectedData: {
+            /** Connected */
+            connected: boolean;
+        };
+        /** BeeperSendData */
+        BeeperSendData: {
+            /** Chat Id */
+            chat_id: string;
+            /** Pending Message Id */
+            pending_message_id?: string | null;
+            /** Interaction Id */
+            interaction_id?: string | null;
+        };
+        /** BeeperStatusData */
+        BeeperStatusData: {
+            /** Configured */
+            configured: boolean;
+            /** Connected */
+            connected: boolean;
+            /** Last Synced At */
+            last_synced_at?: string | null;
+            /**
+             * Full Backfill Complete
+             * @default false
+             */
+            full_backfill_complete: boolean;
+            /**
+             * Accounts
+             * @default []
+             */
+            accounts: components["schemas"]["BeeperAccountInfo"][];
+            /** Error */
+            error?: string | null;
+        };
         /** BioRefreshData */
         BioRefreshData: {
             /** Twitter Bio Changed */
@@ -2282,6 +2432,14 @@ export interface components {
              * @default email
              */
             channel: string;
+        };
+        /** ConnectRequest */
+        ConnectRequest: {
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
         };
         /** ContactCreate */
         ContactCreate: {
@@ -2732,6 +2890,36 @@ export interface components {
         /** Envelope[AvatarRefreshData] */
         Envelope_AvatarRefreshData_: {
             data?: components["schemas"]["AvatarRefreshData"] | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** Envelope[BeeperConnectedData] */
+        Envelope_BeeperConnectedData_: {
+            data?: components["schemas"]["BeeperConnectedData"] | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** Envelope[BeeperSendData] */
+        Envelope_BeeperSendData_: {
+            data?: components["schemas"]["BeeperSendData"] | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** Envelope[BeeperStatusData] */
+        Envelope_BeeperStatusData_: {
+            data?: components["schemas"]["BeeperStatusData"] | null;
             /** Error */
             error?: string | null;
             /** Meta */
@@ -4129,6 +4317,15 @@ export interface components {
             /** Interaction Id */
             interaction_id?: string | null;
         };
+        /** SendMessageRequest */
+        SendMessageRequest: {
+            /** Text */
+            text: string;
+            /** Chat Id */
+            chat_id?: string | null;
+            /** Contact Id */
+            contact_id?: string | null;
+        };
         /** SuggestionPrefsData */
         SuggestionPrefsData: {
             /** Max Suggestions */
@@ -4186,6 +4383,10 @@ export interface components {
             linkedin: {
                 [key: string]: unknown;
             };
+            /** Beeper */
+            beeper: {
+                [key: string]: unknown;
+            };
         };
         /**
          * SyncSettingsInput
@@ -4206,6 +4407,10 @@ export interface components {
             } | null;
             /** Linkedin */
             linkedin?: {
+                [key: string]: unknown;
+            } | null;
+            /** Beeper */
+            beeper?: {
                 [key: string]: unknown;
             } | null;
         };
@@ -4383,6 +4588,11 @@ export interface components {
             /** Whatsapp Phone */
             whatsapp_phone?: string | null;
             /**
+             * Beeper Connected
+             * @default false
+             */
+            beeper_connected: boolean;
+            /**
              * Meta Connected
              * @default false
              */
@@ -4448,6 +4658,11 @@ export interface components {
             whatsapp_connected: boolean;
             /** Whatsapp Phone */
             whatsapp_phone?: string | null;
+            /**
+             * Beeper Connected
+             * @default false
+             */
+            beeper_connected: boolean;
             /** Linkedin Extension Paired At */
             linkedin_extension_paired_at?: string | null;
             /**
@@ -7869,6 +8084,132 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    beeper_status_api_v1_beeper_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_BeeperStatusData_"];
+                };
+            };
+        };
+    };
+    beeper_connect_api_v1_beeper_connect_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_BeeperConnectedData_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    beeper_disconnect_api_v1_beeper_disconnect_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_BeeperConnectedData_"];
+                };
+            };
+        };
+    };
+    beeper_sync_api_v1_beeper_sync_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_SyncStartedData_"];
+                };
+            };
+        };
+    };
+    beeper_send_message_api_v1_beeper_messages_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_BeeperSendData_"];
                 };
             };
             /** @description Validation Error */

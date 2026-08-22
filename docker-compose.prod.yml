@@ -76,6 +76,8 @@ services:
       CT0: ${CT0:-}
       WHATSAPP_SIDECAR_URL: http://whatsapp-sidecar:3001
       WHATSAPP_WEBHOOK_SECRET: ${WHATSAPP_WEBHOOK_SECRET}
+      BEEPER_API_BASE_URL: ${BEEPER_API_BASE_URL:-https://beeper-api.garzalabs.com}
+      BEEPER_API_TOKEN: ${BEEPER_API_TOKEN:-}
       MAPBOX_SECRET_TOKEN: ${MAPBOX_SECRET_TOKEN:-}
       MAPBOX_PUBLIC_TOKEN: ${MAPBOX_PUBLIC_TOKEN:-}
     volumes:
@@ -113,6 +115,8 @@ services:
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       AUTH_TOKEN: ${AUTH_TOKEN:-}
       CT0: ${CT0:-}
+      BEEPER_API_BASE_URL: ${BEEPER_API_BASE_URL:-https://beeper-api.garzalabs.com}
+      BEEPER_API_TOKEN: ${BEEPER_API_TOKEN:-}
       MAPBOX_SECRET_TOKEN: ${MAPBOX_SECRET_TOKEN:-}
       MAPBOX_PUBLIC_TOKEN: ${MAPBOX_PUBLIC_TOKEN:-}
     volumes:

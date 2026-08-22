@@ -35,6 +35,7 @@ from app.api.twitter_cookies import router as twitter_cookies_router
 from app.api.map import router as map_router
 from app.api.organizations_duplicates import router as org_duplicates_router
 from app.api.version import router as version_router
+from app.api.beeper import router as beeper_router
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -119,6 +120,7 @@ app.include_router(activity_router)
 app.include_router(extension_router)
 app.include_router(sync_history_router)
 app.include_router(whatsapp_router)
+app.include_router(beeper_router)
 app.include_router(meta_router)
 app.include_router(twitter_cookies_router)
 app.include_router(map_router)

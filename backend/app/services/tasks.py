@@ -69,6 +69,10 @@ from app.services.task_jobs.geocoding import (
 from app.services.task_jobs.version_check import (
     check_for_updates,
 )
+from app.services.task_jobs.beeper import (
+    sync_beeper_for_user,
+    sync_beeper_all,
+)
 
 __all__ = [
     # common
@@ -121,4 +125,7 @@ __all__ = [
     "backfill_all_contacts",
     # version check
     "check_for_updates",
+    # beeper
+    "sync_beeper_for_user",
+    "sync_beeper_all",
 ]

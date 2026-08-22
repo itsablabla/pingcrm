@@ -42,6 +42,7 @@ export type ConnectedAccounts = {
   linkedin_extension_paired_at?: string | null;
   whatsapp: boolean;
   whatsapp_phone?: string | null;
+  beeper: boolean;
   meta_connected: boolean;
   meta_connected_name?: string | null;
   meta_sync_facebook: boolean;
@@ -88,6 +89,11 @@ export type UseSettingsControllerReturn = {
   whatsappSync: SyncState;
   setWhatsappSync: (s: SyncState) => void;
   handleWhatsAppSync: () => Promise<void>;
+  beeperConnect: SyncState;
+  setBeeperConnect: (s: SyncState) => void;
+  beeperSync: SyncState;
+  setBeeperSync: (s: SyncState) => void;
+  handleBeeperSync: () => Promise<void>;
 
   // Success modal
   successPlatform: string | null;
@@ -138,6 +144,7 @@ export function useSettingsController(): UseSettingsControllerReturn {
     linkedin_extension_paired_at: null,
     whatsapp: false,
     whatsapp_phone: null,
+    beeper: false,
     meta_connected: false,
     meta_connected_name: null,
     meta_sync_facebook: true,
@@ -154,6 +161,8 @@ export function useSettingsController(): UseSettingsControllerReturn {
   const [twitterSync, setTwitterSync] = useState<SyncState>(defaultSyncState);
   const [whatsappConnect, setWhatsappConnect] = useState<SyncState>(defaultSyncState);
   const [whatsappSync, setWhatsappSync] = useState<SyncState>(defaultSyncState);
+  const [beeperConnect, setBeeperConnect] = useState<SyncState>(defaultSyncState);
+  const [beeperSync, setBeeperSync] = useState<SyncState>(defaultSyncState);
 
   // Success modal
   const [successPlatform, setSuccessPlatform] = useState<string | null>(null);
@@ -199,6 +208,7 @@ export function useSettingsController(): UseSettingsControllerReturn {
             (user.linkedin_extension_paired_at as string) || null,
           whatsapp: !!user.whatsapp_connected,
           whatsapp_phone: (user.whatsapp_phone as string) || null,
+          beeper: !!user.beeper_connected,
           meta_connected: !!user.meta_connected,
           meta_connected_name: (user.meta_connected_name as string) || null,
           meta_sync_facebook: user.meta_sync_facebook !== false,
@@ -376,6 +386,18 @@ export function useSettingsController(): UseSettingsControllerReturn {
     }
   }, [pollForNotification]);
 
+  /* ── Beeper handlers ── */
+  const handleBeeperSync = useCallback(async () => {
+    setBeeperSync({ status: "loading", message: "Syncing Beeper..." });
+    const { error } = await client.POST("/api/v1/beeper/sync", {});
+    if (error) {
+      const detail = (error as { detail?: string })?.detail;
+      setBeeperSync({ status: "error", message: detail || "Beeper sync failed." });
+    } else {
+      pollForNotification("Beeper", setBeeperSync);
+    }
+  }, [pollForNotification]);
+
   return {
     activeTab,
     setTab,
@@ -399,6 +421,11 @@ export function useSettingsController(): UseSettingsControllerReturn {
     whatsappSync,
     setWhatsappSync,
     handleWhatsAppSync,
+    beeperConnect,
+    setBeeperConnect,
+    beeperSync,
+    setBeeperSync,
+    handleBeeperSync,
     successPlatform,
     setSuccessPlatform,
     showTelegramModal,

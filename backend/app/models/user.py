@@ -46,6 +46,13 @@ class User(Base):
     whatsapp_last_synced_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Beeper unified messaging: v1 uses a deployment-level token, so per-user
+    # state is just an enablement flag plus the sync cursor.
+    beeper_connected: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default="false")
+    beeper_last_synced_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    beeper_full_backfill_complete: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default="false")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

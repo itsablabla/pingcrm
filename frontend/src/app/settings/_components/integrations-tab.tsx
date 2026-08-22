@@ -6,6 +6,7 @@ import { TwitterCard } from "./platform-cards/twitter-card";
 import { TwitterBirdRow } from "./platform-cards/twitter-bird-row";
 import { LinkedInCard } from "./platform-cards/linkedin-card";
 import { WhatsAppCard } from "./platform-cards/whatsapp-card";
+import { BeeperCard } from "./platform-cards/beeper-card";
 import { MetaCard } from "./platform-cards/meta-card";
 import type {
   ConnectedAccounts,
@@ -13,6 +14,7 @@ import type {
 } from "../_hooks/use-settings-controller";
 import type { UseTelegramConnectFlowReturn } from "../_hooks/use-telegram-connect-flow";
 import type { UseWhatsAppConnectFlowReturn } from "../_hooks/use-whatsapp-connect-flow";
+import type { UseBeeperConnectFlowReturn } from "../_hooks/use-beeper-connect-flow";
 import type { SyncProgress } from "@/hooks/use-telegram-sync";
 
 export type IntegrationsTabProps = {
@@ -30,6 +32,10 @@ export type IntegrationsTabProps = {
   whatsappSync: SyncState;
   whatsappFlow: UseWhatsAppConnectFlowReturn;
   handleWhatsAppSync: () => Promise<void>;
+  beeperConnect: SyncState;
+  beeperSync: SyncState;
+  beeperFlow: UseBeeperConnectFlowReturn;
+  handleBeeperSync: () => Promise<void>;
   fetchConnectionStatus: () => Promise<void>;
   handleGoogleConnect: () => Promise<void>;
   handleGoogleSyncAll: () => Promise<void>;
@@ -53,6 +59,10 @@ export function IntegrationsTab({
   whatsappSync,
   whatsappFlow,
   handleWhatsAppSync,
+  beeperConnect,
+  beeperSync,
+  beeperFlow,
+  handleBeeperSync,
   fetchConnectionStatus,
   handleGoogleConnect,
   handleGoogleSyncAll,
@@ -102,6 +112,15 @@ export function IntegrationsTab({
         whatsappSync={whatsappSync}
         whatsappFlow={whatsappFlow}
         handleWhatsAppSync={handleWhatsAppSync}
+        fetchConnectionStatus={fetchConnectionStatus}
+      />
+
+      <BeeperCard
+        connected={connected}
+        beeperConnect={beeperConnect}
+        beeperSync={beeperSync}
+        beeperFlow={beeperFlow}
+        handleBeeperSync={handleBeeperSync}
         fetchConnectionStatus={fetchConnectionStatus}
       />
 

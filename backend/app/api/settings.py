@@ -115,6 +115,7 @@ class SyncSettingsInput(BaseModel):
     gmail: dict | None = None
     twitter: dict | None = None
     linkedin: dict | None = None
+    beeper: dict | None = None  # {auto_sync: bool, schedule: "daily"|"6h"|"12h"|"manual"}
 
 
 class SyncSettingsData(BaseModel):
@@ -122,6 +123,7 @@ class SyncSettingsData(BaseModel):
     gmail: dict
     twitter: dict
     linkedin: dict
+    beeper: dict
 
 
 _DEFAULT_SYNC_SETTINGS: dict[str, dict] = {
@@ -129,6 +131,7 @@ _DEFAULT_SYNC_SETTINGS: dict[str, dict] = {
     Provider.GMAIL: {"auto_sync": True, "schedule": "6h"},
     Provider.TWITTER: {"auto_sync": True, "schedule": "daily"},
     Provider.LINKEDIN: {"auto_sync": False, "schedule": "manual"},
+    Provider.BEEPER: {"auto_sync": True, "schedule": "daily"},
 }
 
 

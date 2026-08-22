@@ -92,5 +92,11 @@ celery_app.conf.update(
             "task": "app.services.tasks.check_for_updates",
             "schedule": crontab(minute=15, hour="*/6"),
         },
+        # Beeper unified messaging pull sync daily at 03:30 UTC
+        # (full 90-day backfill on first run, incremental afterwards)
+        "sync-beeper-daily": {
+            "task": "app.services.tasks.sync_beeper_all",
+            "schedule": crontab(minute=30, hour=3),
+        },
     },
 )
