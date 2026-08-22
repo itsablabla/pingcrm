@@ -2308,7 +2308,7 @@
           "contacts"
         ],
         "summary": "Send Message",
-        "description": "Send a message to a contact via the specified channel.\n\nCurrently supports Telegram. Creates an Interaction record on success.",
+        "description": "Send a message to a contact via the specified channel.\n\nSupports Telegram and Beeper (unified messaging). Creates an Interaction\nrecord on success.",
         "operationId": "send_message_api_v1_contacts__contact_id__send_message_post",
         "security": [
           {
@@ -5554,6 +5554,181 @@
         }
       }
     },
+    "/api/v1/beeper/status": {
+      "get": {
+        "tags": [
+          "beeper"
+        ],
+        "summary": "Beeper Status",
+        "description": "Beeper connection state plus the bridged accounts the token can see.",
+        "operationId": "beeper_status_api_v1_beeper_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_BeeperStatusData_"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/beeper/connect": {
+      "post": {
+        "tags": [
+          "beeper"
+        ],
+        "summary": "Beeper Connect",
+        "description": "Enable/disable Beeper sync for the current user.",
+        "operationId": "beeper_connect_api_v1_beeper_connect_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_BeeperConnectedData_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/beeper/disconnect": {
+      "post": {
+        "tags": [
+          "beeper"
+        ],
+        "summary": "Beeper Disconnect",
+        "description": "Disable Beeper sync for the current user (history is kept).",
+        "operationId": "beeper_disconnect_api_v1_beeper_disconnect_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_BeeperConnectedData_"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/beeper/sync": {
+      "post": {
+        "tags": [
+          "beeper"
+        ],
+        "summary": "Beeper Sync",
+        "description": "Queue a manual Beeper sync for the current user.",
+        "operationId": "beeper_sync_api_v1_beeper_sync_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SyncStartedData_"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/beeper/messages": {
+      "post": {
+        "tags": [
+          "beeper"
+        ],
+        "summary": "Beeper Send Message",
+        "description": "Send a text message through Beeper and record it as an interaction.\n\nProvide either ``chat_id`` (a Beeper chat ID) or ``contact_id`` (resolves\nto the contact's ``beeper_chat_id`` saved during sync).",
+        "operationId": "beeper_send_message_api_v1_beeper_messages_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMessageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_BeeperSendData_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/meta/push": {
       "post": {
         "tags": [
@@ -5954,6 +6129,158 @@
         ],
         "title": "BackfillItem"
       },
+      "BeeperAccountInfo": {
+        "properties": {
+          "accountID": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accountid"
+          },
+          "network": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Network"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Username"
+          }
+        },
+        "type": "object",
+        "title": "BeeperAccountInfo"
+      },
+      "BeeperConnectedData": {
+        "properties": {
+          "connected": {
+            "type": "boolean",
+            "title": "Connected"
+          }
+        },
+        "type": "object",
+        "required": [
+          "connected"
+        ],
+        "title": "BeeperConnectedData"
+      },
+      "BeeperSendData": {
+        "properties": {
+          "chat_id": {
+            "type": "string",
+            "title": "Chat Id"
+          },
+          "pending_message_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Message Id"
+          },
+          "interaction_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interaction Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chat_id"
+        ],
+        "title": "BeeperSendData"
+      },
+      "BeeperStatusData": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "connected": {
+            "type": "boolean",
+            "title": "Connected"
+          },
+          "last_synced_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Synced At"
+          },
+          "full_backfill_complete": {
+            "type": "boolean",
+            "title": "Full Backfill Complete",
+            "default": false
+          },
+          "accounts": {
+            "items": {
+              "$ref": "#/components/schemas/BeeperAccountInfo"
+            },
+            "type": "array",
+            "title": "Accounts",
+            "default": []
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configured",
+          "connected"
+        ],
+        "title": "BeeperStatusData"
+      },
       "BioRefreshData": {
         "properties": {
           "twitter_bio_changed": {
@@ -6185,6 +6512,17 @@
         },
         "type": "object",
         "title": "ComposeBody"
+      },
+      "ConnectRequest": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "ConnectRequest"
       },
       "ContactCreate": {
         "properties": {
@@ -7932,6 +8270,123 @@
         },
         "type": "object",
         "title": "Envelope[AvatarRefreshData]"
+      },
+      "Envelope_BeeperConnectedData_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BeeperConnectedData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "meta": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meta"
+          }
+        },
+        "type": "object",
+        "title": "Envelope[BeeperConnectedData]"
+      },
+      "Envelope_BeeperSendData_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BeeperSendData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "meta": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meta"
+          }
+        },
+        "type": "object",
+        "title": "Envelope[BeeperSendData]"
+      },
+      "Envelope_BeeperStatusData_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BeeperStatusData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "meta": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meta"
+          }
+        },
+        "type": "object",
+        "title": "Envelope[BeeperStatusData]"
       },
       "Envelope_BioRefreshData_": {
         "properties": {
@@ -12660,6 +13115,44 @@
         ],
         "title": "SendMessageData"
       },
+      "SendMessageRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "chat_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chat Id"
+          },
+          "contact_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "SendMessageRequest"
+      },
       "SuggestionPrefsData": {
         "properties": {
           "max_suggestions": {
@@ -12839,6 +13332,11 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Linkedin"
+          },
+          "beeper": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Beeper"
           }
         },
         "type": "object",
@@ -12846,7 +13344,8 @@
           "telegram",
           "gmail",
           "twitter",
-          "linkedin"
+          "linkedin",
+          "beeper"
         ],
         "title": "SyncSettingsData"
       },
@@ -12899,6 +13398,18 @@
               }
             ],
             "title": "Linkedin"
+          },
+          "beeper": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Beeper"
           }
         },
         "type": "object",
@@ -13373,6 +13884,11 @@
             ],
             "title": "Whatsapp Phone"
           },
+          "beeper_connected": {
+            "type": "boolean",
+            "title": "Beeper Connected",
+            "default": false
+          },
           "meta_connected": {
             "type": "boolean",
             "title": "Meta Connected",
@@ -13510,6 +14026,11 @@
               }
             ],
             "title": "Whatsapp Phone"
+          },
+          "beeper_connected": {
+            "type": "boolean",
+            "title": "Beeper Connected",
+            "default": false
           },
           "linkedin_extension_paired_at": {
             "anyOf": [

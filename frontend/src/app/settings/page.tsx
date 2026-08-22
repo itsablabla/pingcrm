@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useSettingsController, type TabId } from "./_hooks/use-settings-controller";
 import { useTelegramConnectFlow } from "./_hooks/use-telegram-connect-flow";
 import { useWhatsAppConnectFlow } from "./_hooks/use-whatsapp-connect-flow";
+import { useBeeperConnectFlow } from "./_hooks/use-beeper-connect-flow";
 import { SuccessModal } from "./_components/shared";
 import { IntegrationsTab } from "./_components/integrations-tab";
 import { ImportTab } from "./_components/import-tab";
@@ -94,6 +95,11 @@ function SettingsContent() {
     setWhatsappConnect: ctrl.setWhatsappConnect,
     onSuccess: ctrl.fetchConnectionStatus,
   });
+  const beeperFlow = useBeeperConnectFlow({
+    beeperConnect: ctrl.beeperConnect,
+    setBeeperConnect: ctrl.setBeeperConnect,
+    onSuccess: ctrl.fetchConnectionStatus,
+  });
 
   if (ctrl.isLoading) {
     return (
@@ -140,6 +146,10 @@ function SettingsContent() {
             whatsappSync={ctrl.whatsappSync}
             whatsappFlow={whatsappFlow}
             handleWhatsAppSync={ctrl.handleWhatsAppSync}
+            beeperConnect={ctrl.beeperConnect}
+            beeperSync={ctrl.beeperSync}
+            beeperFlow={beeperFlow}
+            handleBeeperSync={ctrl.handleBeeperSync}
             fetchConnectionStatus={ctrl.fetchConnectionStatus}
             handleGoogleConnect={ctrl.handleGoogleConnect}
             handleGoogleSyncAll={ctrl.handleGoogleSyncAll}

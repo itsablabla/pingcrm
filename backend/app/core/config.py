@@ -78,6 +78,19 @@ class Settings(BaseSettings):
     WHATSAPP_SIDECAR_URL: str = "http://localhost:3001"
     WHATSAPP_WEBHOOK_SECRET: str = ""
 
+    # Beeper unified messaging (WhatsApp/Telegram/Slack/Discord/Signal/...).
+    # v1 uses a single deployment-level token; per-user enablement is tracked
+    # on the user row (beeper_connected). Realtime WS is phase 2 — v1 is
+    # scheduled pull sync like the Gmail/Telegram/Twitter tasks.
+    BEEPER_API_BASE_URL: str = "https://beeper-api.garzalabs.com"
+    BEEPER_API_TOKEN: str = ""
+    # Comma-separated bridged networks to sync; empty or "all" means every
+    # network the token can see. Network names are lower-cased before compare
+    # (the API reports them like "WhatsApp", "telegram", ...).
+    BEEPER_ENABLED_NETWORKS: str = "all"
+    # Full backfill horizon in days — bounds how far the initial sync reaches.
+    BEEPER_BACKFILL_DAYS: int = 90
+
     class Config:
         env_file = ".env"
 

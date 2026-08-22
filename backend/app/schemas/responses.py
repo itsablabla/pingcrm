@@ -315,6 +315,7 @@ class UserWithAccountsData(BaseModel):
     twitter_username: str | None = None
     whatsapp_connected: bool = False
     whatsapp_phone: str | None = None
+    beeper_connected: bool = False
     linkedin_extension_paired_at: datetime | None = None
     meta_connected: bool = False
     meta_connected_name: str | None = None

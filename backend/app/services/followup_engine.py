@@ -91,7 +91,7 @@ _has_interactions = Contact.last_interaction_at.isnot(None)
 _not_archived = Contact.priority_level != "archived"
 
 
-_SENDABLE_CHANNELS = {"email", "telegram", "twitter"}
+_SENDABLE_CHANNELS = {"email", "telegram", "twitter", "beeper"}
 
 
 @dataclass

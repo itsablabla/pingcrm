@@ -94,6 +94,13 @@ async def _create_schema(url: str) -> None:
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+            # Idempotent re-create: a previous session may have been killed
+            # before its teardown dropped the schema, leaving the trigger in
+            # place (plain CREATE TRIGGER fails if it already exists).
+            # Single statement — asyncpg cannot prepare multi-command strings.
+            await conn.execute(
+                text("DROP TRIGGER IF EXISTS trg_clear_2nd_tier_on_interaction ON interactions")
+            )
             await conn.execute(text(CLEAR_2ND_TIER_FUNCTION))
             await conn.execute(text(CLEAR_2ND_TIER_TRIGGER))
     finally:

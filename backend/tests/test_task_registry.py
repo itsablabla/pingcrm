@@ -37,6 +37,8 @@ def test_celery_task_registry():
         "app.services.tasks.apply_tags_to_contacts",
         "app.services.tasks.cleanup_stale_telegram_locks",
         "app.services.tasks.scan_meeting_preps",
+        "app.services.tasks.sync_beeper_for_user",
+        "app.services.tasks.sync_beeper_all",
     }
 
     missing = expected_tasks - registered

@@ -26,3 +26,12 @@ class Provider(StrEnum):
     WHATSAPP = "whatsapp"
     INSTAGRAM = "instagram"
     FACEBOOK = "facebook"
+    # Networks reachable through the Beeper unified-messaging connector.
+    # Inbound Beeper messages store the bridged network as Interaction.platform
+    # (e.g. a WhatsApp message synced via Beeper is platform="whatsapp") so the
+    # existing per-channel filters and scoring breadth keep working.
+    SLACK = "slack"
+    DISCORD = "discord"
+    SIGNAL = "signal"
+    # The connector itself (settings, sync history, outbound sends).
+    BEEPER = "beeper"
