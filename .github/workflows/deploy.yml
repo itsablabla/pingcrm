@@ -8,9 +8,12 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  BACKEND_IMAGE: ghcr.io/${{ github.repository }}/backend
-  FRONTEND_IMAGE: ghcr.io/${{ github.repository }}/frontend
-  WHATSAPP_SIDECAR_IMAGE: ghcr.io/${{ github.repository }}/whatsapp-sidecar
+  # Upstream pushes to ghcr.io/<owner>/pingcrm/*. Forks hit GHCR package
+  # permission walls (existing package linked to upstream), so forks append
+  # a "-beeper" suffix to land in fresh, self-owned packages.
+  BACKEND_IMAGE: ghcr.io/${{ github.repository }}${{ github.repository_owner != 'sneg55' && '-beeper' || '' }}/backend
+  FRONTEND_IMAGE: ghcr.io/${{ github.repository }}${{ github.repository_owner != 'sneg55' && '-beeper' || '' }}/frontend
+  WHATSAPP_SIDECAR_IMAGE: ghcr.io/${{ github.repository }}${{ github.repository_owner != 'sneg55' && '-beeper' || '' }}/whatsapp-sidecar
 
 jobs:
   lint-file-length:
@@ -160,6 +163,8 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build and push whatsapp-sidecar
+        # Sidecar deploys only with the upstream compose stack
+        if: github.repository_owner == 'sneg55'
         uses: docker/build-push-action@v7
         with:
           context: ./whatsapp-sidecar
@@ -170,7 +175,7 @@ jobs:
 
   deploy:
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.repository_owner == 'sneg55' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
