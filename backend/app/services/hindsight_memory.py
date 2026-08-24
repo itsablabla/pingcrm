@@ -126,6 +126,9 @@ class HindsightClient:
         args: dict = {"query": query, "bank_id": bank_id or _bank()}
         if tags:
             args["tags"] = tags
+            # "any" semantics: memories carry auto-generated tags alongside
+            # ours, so strict "all" matching silently returns nothing.
+            args["tags_match"] = "any"
         try:
             result = await self._call_tool("recall", args)
             return _text_from_tool_result(result)
