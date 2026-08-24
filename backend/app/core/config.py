@@ -91,6 +91,15 @@ class Settings(BaseSettings):
     # Full backfill horizon in days — bounds how far the initial sync reaches.
     BEEPER_BACKFILL_DAYS: int = 90
 
+    # Hindsight long-term memory (per-project memory banks).
+    # When set, drafts pull recalled context and every sent message is
+    # retained. The MCP header value should be the full Authorization header
+    # (e.g. "Basic base64…" or "Bearer …").
+    HINDSIGHT_MCP_URL: str = ""
+    HINDSIGHT_MCP_AUTH: str = ""
+    # Name of the memory bank used for CRM memory (auto-created if absent).
+    HINDSIGHT_MEMORY_BANK: str = "pingcrm"
+
     class Config:
         env_file = ".env"
 

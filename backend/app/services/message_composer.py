@@ -361,6 +361,28 @@ async def compose_followup_message(
         )
     twitter_instruction = ("\n" + "\n".join(instruction_lines)) if instruction_lines else ""
 
+    # ------------------------------------------------------------------
+    # Pull Hindsight long-term memory for this contact (best-effort).
+    # A remembered personal detail makes the draft feel far more genuine.
+    # ------------------------------------------------------------------
+    memory_section = ""
+    from app.services.hindsight_memory import contact_tag, get_client
+    h_client = await get_client()
+    if h_client is not None:
+        contact_key = contact_tag(contact)
+        query = (
+            f"Personal and professional details about {contact.full_name or first_name}"
+            f"{(' at ' + contact.company) if contact.company else ''}: "
+            "preferences, interests, milestones, prior favors, shared history, "
+            "anything the user should remember when reaching out."
+        )
+        memories = await h_client.recall(query, tags=[contact_key] if contact_key else None)
+        if memories and memories.strip():
+            memory_section = (
+                "\nRELEVANT MEMORIES (from the user's long-term memory about this contact):\n"
+                f"{memories[:1500]}\n"
+            )
+
     prompt = f"""You are a networking assistant helping a user maintain genuine professional relationships.
 Write a short, natural follow-up message for the contact below.
 
@@ -373,7 +395,7 @@ PREFERRED CHANNEL: {preferred_channel}
 REASON FOR FOLLOW-UP:
 {reason}
 
-LAST CONVERSATION EXCERPT:
+{memory_section}LAST CONVERSATION EXCERPT:
 {last_convo_summary}
 
 INSTRUCTIONS:

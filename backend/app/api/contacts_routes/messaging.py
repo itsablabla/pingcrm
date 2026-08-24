@@ -155,6 +155,27 @@ async def send_message(
             detail=f"Sending via '{body.channel}' is not yet supported. Only 'telegram' and 'beeper' are available.",
         )
 
+    # ------------------------------------------------------------------
+    # Retain the sent message into Hindsight long-term memory (best-effort).
+    # ------------------------------------------------------------------
+    try:
+        from app.services.hindsight_memory import contact_tag, get_client
+        h_client = await get_client()
+        if h_client is not None:
+            contact_name = contact.full_name or contact.given_name or str(contact.id)
+            content = (
+                f"Sent message to {contact_name} via {body.channel}: "
+                f"\"{body.message.strip()[:500]}\""
+            )
+            contact_key = contact_tag(contact)
+            await h_client.retain(
+                content,
+                context=f"Outbound message to {contact_name} via {body.channel}.",
+                tags=[contact_key],
+            )
+    except Exception:
+        logger.exception("hindsight retain failed on send for contact %s", contact.id)
+
     # Record the interaction
     from app.models.interaction import Interaction
 
